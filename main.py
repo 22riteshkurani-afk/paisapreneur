@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+import google.generativeai as genai 
 import os
-from google import genai
 
 app = FastAPI()
 
@@ -16,6 +16,8 @@ app.add_middleware(
 
 # ✅ API KEY
 client = genai.Client(api_key=os.getenv("API_KEY"))
+
+model = genai.GenerativeModel("gemini-pro")
 
 @app.get("/")
 def home():
@@ -37,12 +39,9 @@ def generate_idea(industry: str):
         - 30-day plan
         """
 
-        response = client.models.generate_content(
-    model="gemini-2.0-flash-exp",
-    contents=prompt
-)
+        response = model.generate_content(prompt)
 
-        return {"idea": response.text if hasattr(response, "text") else str(response)}
+        return {"idea": response.text}
 
     except Exception as e:
         return {"error": str(e)}
