@@ -38,9 +38,9 @@ def generate_idea(industry: str):
         """
 
         response = client.models.generate_content(
-            model="gemini-1.5-flash",
-            contents=prompt
-        )
+    model="gemini-1.5-flash",
+    contents=[{"role": "user", "parts": [prompt]}]
+)
 
         return {"idea": response.text if hasattr(response, "text") else str(response)}
 
