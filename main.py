@@ -38,7 +38,7 @@ def generate_idea(industry: str):
         """
 
         response = client.models.generate_content(
-    model="gemini-1.0-pro",
+    model="gemini-2.0-flash",
     contents=prompt
 )
 
