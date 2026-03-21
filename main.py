@@ -1,10 +1,11 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-import google.generativeai as genai
+import os
+from google import genai
 
 app = FastAPI()
 
-# ✅ CORS FIX
+# ✅ CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -13,11 +14,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# 🔑 API KEY
-import os
-genai.configure(api_key=os.getenv("API_KEY"))
-
-model = genai.GenerativeModel("gemini-1.5-flash")
+# ✅ API KEY
+client = genai.Client(api_key=os.getenv("API_KEY"))
 
 @app.get("/")
 def home():
@@ -25,20 +23,26 @@ def home():
 
 @app.get("/generate")
 def generate_idea(industry: str):
+    try:
+        prompt = f"""
+        User interest: {industry}
 
-    prompt = f"""
-    User interest: {industry}
+        Generate a profitable startup idea in India.
 
-    Generate a profitable startup idea in India.
+        Include:
+        - Idea
+        - Target users
+        - Revenue model
+        - MVP
+        - 30-day plan
+        """
 
-    Include:
-    Idea
-    Target users
-    Revenue model
-    MVP
-    30-day plan
-    """
+        response = client.models.generate_content(
+            model="gemini-1.5-flash",
+            contents=prompt
+        )
 
-    response = model.generate_content(prompt)
+        return {"idea": response.text}
 
-    return {"idea": response.text}
+    except Exception as e:
+        return {"error": str(e)}
