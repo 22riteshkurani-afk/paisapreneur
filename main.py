@@ -42,7 +42,7 @@ def generate_idea(industry: str):
             contents=prompt
         )
 
-        return {"idea": response.text}
+        return {"idea": response.text if hasattr(response, "text") else str(response)}
 
     except Exception as e:
         return {"error": str(e)}
