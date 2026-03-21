@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Paisapreneur</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #0f172a, #020617);
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .container {
+      text-align: center;
+      max-width: 600px;
+      width: 100%;
+      padding: 20px;
+    }
+
+    h1 {
+      font-size: 36px;
+      margin-bottom: 10px;
+    }
+
+    p {
+      color: #94a3b8;
+      margin-bottom: 30px;
+    }
+
+    input {
+      padding: 14px;
+      width: 70%;
+      border-radius: 10px;
+      border: none;
+      outline: none;
+      font-size: 16px;
+    }
+
+    button {
+      padding: 14px 20px;
+      margin-left: 10px;
+      border-radius: 10px;
+      border: none;
+      background: #22c55e;
+      color: black;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    button:hover {
+      background: #16a34a;
+    }
+
+    #output {
+      margin-top: 30px;
+      background: #1e293b;
+      padding: 20px;
+      border-radius: 12px;
+      white-space: pre-wrap;
+      text-align: left;
+      min-height: 120px;
+    }
+
+    #paywall {
+      margin-top: 20px;
+      color: #facc15;
+      display: none;
+      font-weight: bold;
+    }
+
+    .loader {
+      margin-top: 20px;
+      display: none;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <h1>Paisapreneur 🚀</h1>
+  <p>Generate profitable startup ideas in 60 seconds</p>
+
+  <input id="input" placeholder="AI, Fitness, Education..." />
+  <button onclick="generate()">Generate</button>
+
+  <div class="loader" id="loader">⏳ Generating...</div>
+
+  <div id="output"></div>
+
+  <div id="paywall">
+    🔒 Unlock unlimited startup ideas for ₹499/month
+    <br><br>
+    <button onclick="upgrade()">Upgrade to Pro</button>
+  </div>
+
+</div>
+
+<script>
+let usage = 0;
+
+async function generate() {
+
+  if (usage >= 1) {
+    document.getElementById("paywall").style.display = "block";
+    return;
+  }
+
+  let input = document.getElementById("input").value;
+
+  document.getElementById("loader").style.display = "block";
+  document.getElementById("output").innerText = "";
+
+  let res = await fetch(`http://127.0.0.1:8000/generate?industry=${input}`);
+  let data = await res.json();
+
+  document.getElementById("loader").style.display = "none";
+  document.getElementById("output").innerText = data.idea;
+
+  usage++;
+}
+
+function upgrade() {
+  alert("Payment integration coming next 🚀");
+}
+</script>
+
+</body>
+</html>
