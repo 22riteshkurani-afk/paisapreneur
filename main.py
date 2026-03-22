@@ -26,7 +26,7 @@ def home():
 @app.get("/generate")
 def generate_idea(industry: str):
     try:
-        model = genai.GenerativeModel("models/gemini-2.0-flash")
+        model = genai.GenerativeModel("models/gemini-2.5-flash")
 
         prompt = f"""
         Give a high-profit startup idea in {industry} in India.
