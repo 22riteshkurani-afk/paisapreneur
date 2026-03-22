@@ -14,12 +14,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# API KEY
-genai.configure(api_key=os.getenv("paisapreneur-key"))
+# ✅ FIXED API KEY
+genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
 
-# -----------------------------
-# EXISTING ROUTES
-# -----------------------------
 
 @app.get("/")
 def home():
@@ -29,22 +26,33 @@ def home():
 @app.get("/generate")
 def generate_idea(industry: str):
     try:
-        model = genai.GenerativeModel("YOUR_MODEL_NAME")
-        response = model.generate_content(f"Startup idea for {industry}")
-        return {"idea": response.text}
+        model = genai.GenerativeModel("models/gemini-2.0-flash")
+
+        prompt = f"""
+        Give a high-profit startup idea in {industry} in India.
+
+        Include:
+        - Idea
+        - Target market
+        - Cost
+        - Revenue model
+        - Steps to start
+        """
+
+        response = model.generate_content(prompt)
+
+        return {
+            "idea": response.text if hasattr(response, "text") else str(response)
+        }
+
     except Exception as e:
         return {"error": str(e)}
 
-# -----------------------------
-# 👉 PASTE HERE (NEW ENDPOINT)
-# -----------------------------
 
 @app.get("/models")
 def list_models():
     try:
         models = genai.list_models()
-        return {
-            "models": [m.name for m in models]
-        }
+        return {"models": [m.name for m in models]}
     except Exception as e:
         return {"error": str(e)}
