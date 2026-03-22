@@ -29,15 +29,20 @@ def generate_idea(industry: str):
         model = genai.GenerativeModel("models/gemini-2.5-flash")
 
         prompt = f"""
-        Give a high-profit startup idea in {industry} in India.
+Return ONLY JSON.
 
-        Include:
-        - Idea
-        - Target market
-        - Cost
-        - Revenue model
-        - Steps to start
-        """
+Generate a high-profit startup idea in {industry} in India.
+
+Format:
+{{
+  "idea_name": "",
+  "description": "",
+  "target_market": "",
+  "startup_cost": "",
+  "revenue_model": "",
+  "steps": ["", "", ""]
+}}
+"""
 
         response = model.generate_content(prompt)
 
