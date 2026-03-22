@@ -1,7 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-import google.generativeai as genai
+from google import genai
 import os
+import json
 
 app = FastAPI()
 
@@ -14,66 +15,40 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-<<<<<<< HEAD
-# 🔑 API KEY
-import os
-genai.configure(api_key=os.getenv("API_KEY"))
-=======
-# ✅ FIXED API KEY
-genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
->>>>>>> 859916daf54ac06d85cb3a1789ca95ae4c0324e0
-
+# NEW GEMINI CLIENT
+client = genai.Client(api_key=os.getenv("GOOGLE_API_KEY"))
 
 @app.get("/")
 def home():
     return {"message": "Paisapreneur is running 🚀"}
 
 
-import json
-
 @app.get("/generate")
 def generate_idea(industry: str):
     try:
-        model = genai.GenerativeModel("models/gemini-2.5-flash")
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=f"""
+            Return ONLY valid JSON.
 
-        prompt = f"""
-        Return ONLY valid JSON.
+            Generate a startup idea in {industry} in India.
 
-        Generate a startup idea in {industry} in India.
-
-        Format:
-        {{
-          "idea_name": "",
-          "description": "",
-          "target_market": "",
-          "startup_cost": "",
-          "revenue_model": "",
-          "steps": ["", "", ""]
-        }}
-        """
-
-        response = model.generate_content(
-            prompt,
-            request_options={"timeout": 30}
+            Format:
+            {{
+              "idea_name": "",
+              "description": "",
+              "target_market": "",
+              "startup_cost": "",
+              "revenue_model": "",
+              "steps": ["", "", ""]
+            }}
+            """
         )
 
-        raw_text = response.text
+        raw = response.text
+        cleaned = raw.replace("```json", "").replace("```", "")
 
-        # 🔥 Clean & parse JSON safely
-        cleaned = raw_text.strip().replace("```json", "").replace("```", "")
+        return json.loads(cleaned)
 
-        data = json.loads(cleaned)
-
-        return data
-
-    except Exception as e:
-        return {"error": str(e)}
-
-
-@app.get("/models")
-def list_models():
-    try:
-        models = genai.list_models()
-        return {"models": [m.name for m in models]}
     except Exception as e:
         return {"error": str(e)}
