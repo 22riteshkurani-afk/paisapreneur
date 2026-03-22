@@ -26,5 +26,16 @@ def home():
 
 @app.get("/generate")
 def generate_idea(industry: str):
-    response = model.generate_content(f"Startup idea for {industry}")
-    return {"idea": response.text}
+    try:
+        response = model.generate_content(
+            f"Give a profitable startup idea in {industry} in India with business model, cost, and steps"
+        )
+
+        # SAFE extraction
+        if response and hasattr(response, "text"):
+            return {"idea": response.text}
+        else:
+            return {"error": "No response from AI"}
+
+    except Exception as e:
+        return {"error": str(e)}
