@@ -5,7 +5,7 @@ import os
 
 app = FastAPI()
 
-# ✅ CORS
+# CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -14,12 +14,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ✅ Configure API key
+# API KEY
 genai.configure(api_key=os.getenv("paisapreneur-key"))
 
-# ✅ Use latest working model
-MODEL_NAME = "gemini-1.5-flash-latest"
-
+# -----------------------------
+# EXISTING ROUTES
+# -----------------------------
 
 @app.get("/")
 def home():
@@ -29,26 +29,22 @@ def home():
 @app.get("/generate")
 def generate_idea(industry: str):
     try:
-        model = genai.GenerativeModel(MODEL_NAME)
+        model = genai.GenerativeModel("YOUR_MODEL_NAME")
+        response = model.generate_content(f"Startup idea for {industry}")
+        return {"idea": response.text}
+    except Exception as e:
+        return {"error": str(e)}
 
-        prompt = f"""
-        Act like a startup expert.
+# -----------------------------
+# 👉 PASTE HERE (NEW ENDPOINT)
+# -----------------------------
 
-        Give a high-profit startup idea in {industry} in India.
-
-        Include:
-        - Idea
-        - Target market
-        - Cost
-        - Revenue model
-        - Step-by-step execution
-        """
-
-        response = model.generate_content(prompt)
-
+@app.get("/models")
+def list_models():
+    try:
+        models = genai.list_models()
         return {
-            "idea": response.text if hasattr(response, "text") else str(response)
+            "models": [m.name for m in models]
         }
-
     except Exception as e:
         return {"error": str(e)}
