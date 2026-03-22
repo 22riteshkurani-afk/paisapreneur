@@ -1,135 +1,115 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Paisapreneur</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: linear-gradient(135deg, #0f172a, #020617);
-      color: white;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-    }
-
-    .container {
-      text-align: center;
-      max-width: 600px;
-      width: 100%;
-      padding: 20px;
-    }
-
-    h1 {
-      font-size: 36px;
-      margin-bottom: 10px;
-    }
-
-    p {
-      color: #94a3b8;
-      margin-bottom: 30px;
-    }
-
-    input {
-      padding: 14px;
-      width: 70%;
-      border-radius: 10px;
-      border: none;
-      outline: none;
-      font-size: 16px;
-    }
-
-    button {
-      padding: 14px 20px;
-      margin-left: 10px;
-      border-radius: 10px;
-      border: none;
-      background: #22c55e;
-      color: black;
-      font-weight: bold;
-      cursor: pointer;
-      transition: 0.2s;
-    }
-
-    button:hover {
-      background: #16a34a;
-    }
-
-    #output {
-      margin-top: 30px;
-      background: #1e293b;
-      padding: 20px;
-      border-radius: 12px;
-      white-space: pre-wrap;
-      text-align: left;
-      min-height: 120px;
-    }
-
-    #paywall {
-      margin-top: 20px;
-      color: #facc15;
-      display: none;
-      font-weight: bold;
-    }
-
-    .loader {
-      margin-top: 20px;
-      display: none;
-    }
-  </style>
+  <meta charset="UTF-8" />
+  <title>Paisapreneur AI</title>
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
-<body>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
 
-<div class="container">
+<div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-xl">
+  
+  <h1 class="text-2xl font-bold mb-4 text-center">🚀 Paisapreneur AI</h1>
 
-  <h1>Paisapreneur 🚀</h1>
-  <p>Generate profitable startup ideas in 60 seconds</p>
+  <input 
+    id="industry"
+    type="text"
+    placeholder="Enter industry (e.g. fitness, AI, food)"
+    class="w-full p-3 border rounded-lg mb-4"
+  />
 
-  <input id="input" placeholder="AI, Fitness, Education..." />
-  <button onclick="generate()">Generate</button>
+  <button 
+    onclick="generateIdea()"
+    class="w-full bg-black text-white p-3 rounded-lg hover:bg-gray-800"
+  >
+    Generate Idea
+  </button>
 
-  <div class="loader" id="loader">⏳ Generating...</div>
+  <div id="loading" class="text-center mt-4 hidden">⏳ Generating...</div>
 
-  <div id="output"></div>
+  <div id="result" class="mt-6 hidden">
+    <h2 class="text-xl font-bold mb-2" id="idea_name"></h2>
 
-  <div id="paywall">
-    🔒 Unlock unlimited startup ideas for ₹499/month
-    <br><br>
-    <button onclick="upgrade()">Upgrade to Pro</button>
+    <p><b>Description:</b> <span id="description"></span></p>
+    <p><b>Target Market:</b> <span id="target"></span></p>
+    <p><b>Startup Cost:</b> <span id="cost"></span></p>
+    <p><b>Revenue Model:</b> <span id="revenue"></span></p>
+
+    <ul id="steps" class="list-disc ml-6 mt-2"></ul>
+
+    <button 
+      onclick="downloadJSON()"
+      class="mt-4 bg-green-600 text-white px-4 py-2 rounded"
+    >
+      Download JSON
+    </button>
   </div>
 
 </div>
 
 <script>
-let usage = 0;
+const API_URL = "https://paisapreneur.onrender.com/generate";
 
-async function generate() {
+let lastData = null;
 
-  if (usage >= 1) {
-    document.getElementById("paywall").style.display = "block";
+async function generateIdea() {
+  const industry = document.getElementById("industry").value;
+
+  if (!industry) {
+    alert("Enter industry");
     return;
   }
 
-  let input = document.getElementById("input").value;
+  document.getElementById("loading").classList.remove("hidden");
+  document.getElementById("result").classList.add("hidden");
 
-  document.getElementById("loader").style.display = "block";
-  document.getElementById("output").innerText = "";
+  try {
+    const res = await fetch(`${API_URL}?industry=${industry}`);
+    const data = await res.json();
 
-  let res = await fetch(`http://127.0.0.1:8000/generate?industry=${input}`);
-  let data = await res.json();
+    if (data.error) {
+      alert(data.error);
+      return;
+    }
 
-  document.getElementById("loader").style.display = "none";
-  document.getElementById("output").innerText = data.idea;
+    lastData = data;
 
-  usage++;
+    document.getElementById("idea_name").innerText = data.idea_name;
+    document.getElementById("description").innerText = data.description;
+    document.getElementById("target").innerText = data.target_market;
+    document.getElementById("cost").innerText = data.startup_cost;
+    document.getElementById("revenue").innerText = data.revenue_model;
+
+    const stepsList = document.getElementById("steps");
+    stepsList.innerHTML = "";
+
+    data.steps.forEach(step => {
+      const li = document.createElement("li");
+      li.innerText = step;
+      stepsList.appendChild(li);
+    });
+
+    document.getElementById("result").classList.remove("hidden");
+
+  } catch (err) {
+    alert("Something went wrong");
+  }
+
+  document.getElementById("loading").classList.add("hidden");
 }
 
-function upgrade() {
-  alert("Payment integration coming next 🚀");
+function downloadJSON() {
+  const blob = new Blob([JSON.stringify(lastData, null, 2)], {
+    type: "application/json"
+  });
+
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "idea.json";
+  a.click();
 }
 </script>
 
