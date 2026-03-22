@@ -23,32 +23,42 @@ def home():
     return {"message": "Paisapreneur is running 🚀"}
 
 
+import json
+
 @app.get("/generate")
 def generate_idea(industry: str):
     try:
         model = genai.GenerativeModel("models/gemini-2.5-flash")
 
         prompt = f"""
-Return ONLY JSON.
+        Return ONLY valid JSON.
 
-Generate a high-profit startup idea in {industry} in India.
+        Generate a startup idea in {industry} in India.
 
-Format:
-{{
-  "idea_name": "",
-  "description": "",
-  "target_market": "",
-  "startup_cost": "",
-  "revenue_model": "",
-  "steps": ["", "", ""]
-}}
-"""
+        Format:
+        {{
+          "idea_name": "",
+          "description": "",
+          "target_market": "",
+          "startup_cost": "",
+          "revenue_model": "",
+          "steps": ["", "", ""]
+        }}
+        """
 
-        response = model.generate_content(prompt)
+        response = model.generate_content(
+            prompt,
+            request_options={"timeout": 30}
+        )
 
-        return {
-            "idea": response.text if hasattr(response, "text") else str(response)
-        }
+        raw_text = response.text
+
+        # 🔥 Clean & parse JSON safely
+        cleaned = raw_text.strip().replace("```json", "").replace("```", "")
+
+        data = json.loads(cleaned)
+
+        return data
 
     except Exception as e:
         return {"error": str(e)}
