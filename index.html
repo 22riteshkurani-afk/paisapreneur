@@ -47,6 +47,10 @@
     <button onclick="payNow()" class="mt-3 bg-blue-600 text-white px-4 py-2 rounded">
   Unlock Premium Idea ₹99
 </button>
+<button onclick="shareIdea()" class="mt-3 bg-green-600 text-white px-4 py-2 rounded">
+  Share on WhatsApp
+</button>
+
   </div>
 
 </div>
@@ -74,10 +78,28 @@ async function generateIdea() {
     li.innerText = step;
     stepsList.appendChild(li);
   });
-
-    } catch (error) {
-        alert("Error generating idea");
     }
+    function payNow() {
+  alert("Payment integration coming next 🚀");
+}
+function shareIdea() {
+  const text = `
+🚀 Startup Idea: ${document.getElementById("idea_name").innerText}
+
+📌 Description:
+${document.getElementById("description").innerText}
+
+🎯 Target Market:
+${document.getElementById("target").innerText}
+
+💰 Cost:
+${document.getElementById("cost").innerText}
+
+Built using Paisapreneur AI 🚀
+`;
+
+  window.open(`https://wa.me/?text=${encodeURIComponent(text)}`);
+}
 </script>
 
 </body>
