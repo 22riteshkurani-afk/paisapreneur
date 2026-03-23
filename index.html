@@ -44,48 +44,40 @@
     >
       Download JSON
     </button>
+    <button onclick="payNow()" class="mt-3 bg-blue-600 text-white px-4 py-2 rounded">
+  Unlock Premium Idea ₹99
+</button>
   </div>
 
 </div>
 
 <script>
 async function generateIdea() {
-    const industry = document.getElementById("industry").value;
+  const industry = document.getElementById("industry").value;
 
-    if (!industry) {
-        alert("Please enter an industry");
-        return;
-    }
+  const res = await fetch(`/generate?industry=${industry}`);
+  const data = await res.json();
 
-    try {
-        const res = await fetch(
-            `https://paisapreneur.onrender.com/generate?industry=${industry}`
-        );
+  document.getElementById("result").classList.remove("hidden");
 
-        const data = await res.json();
+  document.getElementById("idea_name").innerText = data.idea_name;
+  document.getElementById("description").innerText = data.description;
+  document.getElementById("target").innerText = data.target_market;
+  document.getElementById("cost").innerText = data.startup_cost;
+  document.getElementById("revenue").innerText = data.revenue_model;
 
-        // 🔥 SHOW RESULT DIV
-        document.getElementById("result").classList.remove("hidden");
+  const stepsList = document.getElementById("steps");
+  stepsList.innerHTML = "";
 
-        // Fill values
-        document.getElementById("description").innerText = data.description;
-        document.getElementById("target").innerText = data.target_market;
-        document.getElementById("cost").innerText = data.startup_cost;
-        document.getElementById("revenue").innerText = data.revenue_model;
-
-        // Steps
-        const stepsList = document.getElementById("steps");
-        stepsList.innerHTML = "";
-        data.steps.forEach(step => {
-            const li = document.createElement("li");
-            li.textContent = step;
-            stepsList.appendChild(li);
-        });
+  data.steps.forEach(step => {
+    const li = document.createElement("li");
+    li.innerText = step;
+    stepsList.appendChild(li);
+  });
 
     } catch (error) {
         alert("Error generating idea");
     }
-}
 </script>
 
 </body>
