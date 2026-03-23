@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from google import genai
 import os
 import json
+from fastapi.responses import FileResponse
 
 app = FastAPI()
 
@@ -20,7 +21,7 @@ client = genai.Client(api_key=os.getenv("GOOGLE_API_KEY"))
 
 @app.get("/")
 def home():
-    return {"message": "Paisapreneur is running 🚀"}
+    return FileResponse("index.html")
 
 
 @app.get("/generate")
