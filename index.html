@@ -21,7 +21,7 @@
 
   <button 
     onclick="generateIdea()"
-    class="w-full bg-black text-white p-3 rounded-lg hover:bg-gray-800"
+    class="w-full bg-blue-600 text-white p-3 rounded-lg"
   >
     Generate Idea
   </button>
@@ -49,67 +49,42 @@
 </div>
 
 <script>
-const API_URL = "https://paisapreneur.onrender.com/generate";
-
-let lastData = null;
-
 async function generateIdea() {
-  const industry = document.getElementById("industry").value;
+    const industry = document.getElementById("industry").value;
 
-  if (!industry) {
-    alert("Enter industry");
-    return;
-  }
-
-  document.getElementById("loading").classList.remove("hidden");
-  document.getElementById("result").classList.add("hidden");
-
-  try {
-    const res = await fetch(`${API_URL}?industry=${industry}`);
-    const data = await res.json();
-
-    if (data.error) {
-      alert(data.error);
-      return;
+    if (!industry) {
+        alert("Please enter an industry");
+        return;
     }
 
-    lastData = data;
+    try {
+        const res = await fetch(
+            `https://paisapreneur.onrender.com/generate?industry=${industry}`
+        );
 
-    document.getElementById("idea_name").innerText = data.idea_name;
-    document.getElementById("description").innerText = data.description;
-    document.getElementById("target").innerText = data.target_market;
-    document.getElementById("cost").innerText = data.startup_cost;
-    document.getElementById("revenue").innerText = data.revenue_model;
+        const data = await res.json();
 
-    const stepsList = document.getElementById("steps");
-    stepsList.innerHTML = "";
+        // 🔥 SHOW RESULT DIV
+        document.getElementById("result").classList.remove("hidden");
 
-    data.steps.forEach(step => {
-      const li = document.createElement("li");
-      li.innerText = step;
-      stepsList.appendChild(li);
-    });
+        // Fill values
+        document.getElementById("description").innerText = data.description;
+        document.getElementById("target").innerText = data.target_market;
+        document.getElementById("cost").innerText = data.startup_cost;
+        document.getElementById("revenue").innerText = data.revenue_model;
 
-    document.getElementById("result").classList.remove("hidden");
+        // Steps
+        const stepsList = document.getElementById("steps");
+        stepsList.innerHTML = "";
+        data.steps.forEach(step => {
+            const li = document.createElement("li");
+            li.textContent = step;
+            stepsList.appendChild(li);
+        });
 
-  } catch (err) {
-    alert("Something went wrong");
-  }
-
-  document.getElementById("loading").classList.add("hidden");
-}
-
-function downloadJSON() {
-  const blob = new Blob([JSON.stringify(lastData, null, 2)], {
-    type: "application/json"
-  });
-
-  const url = URL.createObjectURL(blob);
-
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "idea.json";
-  a.click();
+    } catch (error) {
+        alert("Error generating idea");
+    }
 }
 </script>
 
