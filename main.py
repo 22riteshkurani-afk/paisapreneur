@@ -23,8 +23,7 @@ from models import (
     ResumeData,
     ResumeSaveResponse,
 )
-# After: from google import genai
-# Add these:
+
 from authlib.integrations.starlette_client import OAuth
 from starlette.middleware.sessions import SessionMiddleware
 from fastapi.responses import HTMLResponse, RedirectResponse
@@ -46,8 +45,6 @@ app.add_middleware(
     SessionMiddleware,
     secret_key=os.getenv("SECRET_KEY", "paisapreneur_secret_2026")
 )
-
-# Google OAuth
 oauth = OAuth()
 oauth.register(
     name='google',
@@ -55,7 +52,7 @@ oauth.register(
     client_secret=os.getenv("GOOGLE_CLIENT_SECRET"),
     server_metadata_url='https://accounts.google.com/.well-known/openid-configuration',
     client_kwargs={'scope': 'openid email profile'}
-
+)
 # ── CORS ─────────────────────────────────────────────────────────────────────
 app.add_middleware(
     CORSMiddleware,
