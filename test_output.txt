@@ -1,0 +1,45 @@
+============================= test session starts =============================
+platform win32 -- Python 3.13.12, pytest-9.0.2, pluggy-1.6.0 -- C:\Users\Gaming\Desktop\paisapreneur\.venv\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\Gaming\Desktop\paisapreneur
+plugins: anyio-4.12.1
+collecting ... collected 36 items
+
+tests/test_api.py::TestHomeEndpoint::test_home_returns_html PASSED       [  2%]
+tests/test_api.py::TestHomeEndpoint::test_home_contains_app_name PASSED  [  5%]
+tests/test_api.py::TestHealthEndpoint::test_health_returns_200 PASSED    [  8%]
+tests/test_api.py::TestHealthEndpoint::test_health_response_structure PASSED [ 11%]
+tests/test_api.py::TestGenerateEndpoint::test_generate_valid_industry PASSED [ 13%]
+tests/test_api.py::TestGenerateEndpoint::test_generate_has_all_blueprint_sections PASSED [ 16%]
+tests/test_api.py::TestGenerateEndpoint::test_generate_revenue_streams_structure PASSED [ 19%]
+tests/test_api.py::TestGenerateEndpoint::test_generate_timeline_structure PASSED [ 22%]
+tests/test_api.py::TestGenerateEndpoint::test_generate_tools_is_dict PASSED [ 25%]
+tests/test_api.py::TestGenerateEndpoint::test_generate_missing_industry PASSED [ 27%]
+tests/test_api.py::TestGenerateEndpoint::test_generate_empty_industry PASSED [ 30%]
+tests/test_api.py::TestGenerateEndpoint::test_generate_short_industry PASSED [ 33%]
+tests/test_api.py::TestGenerateEndpoint::test_generate_invalid_json_from_gemini PASSED [ 36%]
+tests/test_api.py::TestGenerateEndpoint::test_generate_gemini_api_error PASSED [ 38%]
+tests/test_api.py::TestCaching::test_second_call_uses_cache PASSED       [ 41%]
+tests/test_api.py::TestCaching::test_different_industry_no_cache PASSED  [ 44%]
+tests/test_api.py::TestCaching::test_cache_case_insensitive PASSED       [ 47%]
+tests/test_api.py::TestRateLimiting::test_rate_limit_triggers PASSED     [ 50%]
+tests/test_api.py::TestCORS::test_cors_headers_present PASSED            [ 52%]
+tests/test_models.py::TestIdeaRequest::test_valid_industry PASSED        [ 55%]
+tests/test_models.py::TestIdeaRequest::test_valid_industry_long PASSED   [ 58%]
+tests/test_models.py::TestIdeaRequest::test_industry_too_short PASSED    [ 61%]
+tests/test_models.py::TestIdeaRequest::test_industry_too_long PASSED     [ 63%]
+tests/test_models.py::TestIdeaRequest::test_industry_empty PASSED        [ 66%]
+tests/test_models.py::TestIdeaRequest::test_industry_missing PASSED      [ 69%]
+tests/test_models.py::TestIdeaRequest::test_industry_special_characters PASSED [ 72%]
+tests/test_models.py::TestIdeaRequest::test_industry_unicode PASSED      [ 75%]
+tests/test_models.py::TestRevenueStream::test_valid_stream PASSED        [ 77%]
+tests/test_models.py::TestRevenueStream::test_missing_field PASSED       [ 80%]
+tests/test_models.py::TestTimelineWeek::test_valid_week PASSED           [ 83%]
+tests/test_models.py::TestTimelineWeek::test_empty_tasks PASSED          [ 86%]
+tests/test_models.py::TestBlueprintResponse::test_valid_blueprint PASSED [ 88%]
+tests/test_models.py::TestBlueprintResponse::test_missing_required_field PASSED [ 91%]
+tests/test_models.py::TestErrorResponse::test_error_only PASSED          [ 94%]
+tests/test_models.py::TestErrorResponse::test_error_with_detail PASSED   [ 97%]
+tests/test_models.py::TestHealthResponse::test_defaults PASSED           [100%]
+
+============================= 36 passed in 1.07s ==============================
