@@ -6,3 +6,5 @@ pydantic
 pytest
 httpx
 jinja2
+authlib
+itsdangerous
