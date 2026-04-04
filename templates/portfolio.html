@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{{full_name}} — Portfolio</title>
+  <meta name="description" content="Professional portfolio of {{full_name}}. {{title}}" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ── Reset & Base ───────────────────────────────────────────────── */
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html { font-size: 16px; scroll-behavior: smooth; -webkit-font-smoothing: antialiased; }
+
+    :root {
+      --bg: #0a0a1a;
+      --bg2: #12122a;
+      --glass: rgba(255,255,255,0.06);
+      --border: rgba(255,255,255,0.1);
+      --border-h: rgba(255,255,255,0.2);
+      --text: #f0f0f5;
+      --text2: #9d9db5;
+      --muted: #6b6b85;
+      --accent: #6366f1;
+      --accent2: #7c3aed;
+      --accent-g: rgba(99,102,241,0.25);
+      --success: #10b981;
+      --radius: 16px;
+      --font: 'Inter', system-ui, sans-serif;
+    }
+
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background:
+        radial-gradient(ellipse 80% 50% at 20% 20%, rgba(124,58,237,0.12) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 40% at 80% 80%, rgba(59,130,246,0.1) 0%, transparent 60%);
+      pointer-events: none;
+      animation: bgPulse 8s ease-in-out infinite alternate;
+    }
+    @keyframes bgPulse { 0% { opacity: .6; } 100% { opacity: 1; } }
+
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* ── Hero ───────────────────────────────────────────────────────── */
+    .pf-hero {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      padding: 80px 24px 60px;
+      background: linear-gradient(180deg, rgba(99,102,241,0.1) 0%, transparent 100%);
+    }
+
+    .pf-hero__avatar {
+      width: 100px; height: 100px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent2), var(--accent));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2.5rem; font-weight: 800; color: white;
+      margin: 0 auto 20px;
+      box-shadow: 0 0 40px var(--accent-g);
+    }
+
+    .pf-hero__name {
+      font-size: 2.4rem; font-weight: 800; letter-spacing: -0.03em;
+      background: linear-gradient(135deg, var(--accent2), var(--accent));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .pf-hero__title {
+      font-size: 1.1rem; color: var(--text2); margin-top: 8px;
+    }
+
+    .pf-hero__contact {
+      display: flex; flex-wrap: wrap; gap: 16px;
+      justify-content: center; margin-top: 20px;
+      font-size: 0.85rem; color: var(--muted);
+    }
+
+    .pf-hero__contact a { color: var(--text2); }
+    .pf-hero__contact a:hover { color: var(--accent); }
+
+    /* ── Section Layout ─────────────────────────────────────────────── */
+    .pf-container {
+      position: relative; z-index: 1;
+      max-width: 800px; margin: 0 auto;
+      padding: 0 24px 60px;
+      display: flex; flex-direction: column; gap: 32px;
+    }
+
+    .pf-section {
+      background: var(--glass);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 32px;
+      backdrop-filter: blur(20px);
+      animation: fadeUp 0.6s cubic-bezier(0.16,1,0.3,1) forwards;
+      opacity: 0;
+    }
+
+    .pf-section:nth-child(1) { animation-delay: 0ms; }
+    .pf-section:nth-child(2) { animation-delay: 100ms; }
+    .pf-section:nth-child(3) { animation-delay: 200ms; }
+    .pf-section:nth-child(4) { animation-delay: 300ms; }
+    .pf-section:nth-child(5) { animation-delay: 400ms; }
+    .pf-section:nth-child(6) { animation-delay: 500ms; }
+    .pf-section:nth-child(7) { animation-delay: 600ms; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .pf-section__title {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 0.85rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.08em;
+      color: var(--accent); margin-bottom: 20px;
+    }
+
+    .pf-section__line {
+      flex: 1; height: 1px;
+      background: linear-gradient(to right, var(--border), transparent);
+    }
+
+    /* ── About ──────────────────────────────────────────────────────── */
+    .pf-about {
+      font-size: 0.95rem; color: var(--text2); line-height: 1.7;
+    }
+
+    /* ── Skills ─────────────────────────────────────────────────────── */
+    .pf-skills-grid {
+      display: flex; flex-wrap: wrap; gap: 8px;
+    }
+
+    .pf-skill-tag {
+      padding: 6px 14px; border-radius: 100px;
+      background: var(--accent-g);
+      border: 1px solid rgba(99,102,241,0.3);
+      color: var(--text); font-size: 0.8rem; font-weight: 500;
+    }
+
+    /* ── Timeline (Experience) ──────────────────────────────────────── */
+    .pf-timeline {
+      display: flex; flex-direction: column; gap: 0;
+    }
+
+    .pf-timeline-item {
+      display: flex; gap: 20px;
+      padding: 20px 0;
+      border-left: 2px solid var(--border);
+      margin-left: 10px; padding-left: 24px;
+      position: relative;
+    }
+
+    .pf-timeline-item:last-child { border-left-color: transparent; }
+
+    .pf-timeline-dot {
+      position: absolute; left: -7px; top: 24px;
+      width: 12px; height: 12px;
+      background: var(--accent); border-radius: 50%;
+      border: 2px solid var(--bg);
+    }
+
+    .pf-timeline-content { flex: 1; }
+    .pf-timeline-content h3 { font-size: 1rem; font-weight: 600; margin-bottom: 2px; }
+    .pf-timeline-meta { font-size: 0.8rem; color: var(--muted); margin-bottom: 6px; }
+    .pf-timeline-content p { font-size: 0.875rem; color: var(--text2); line-height: 1.6; white-space: pre-line; }
+
+    /* ── Projects ───────────────────────────────────────────────────── */
+    .pf-projects-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+    }
+
+    .pf-project-card {
+      padding: 20px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 12px;
+      transition: all 0.3s cubic-bezier(0.16,1,0.3,1);
+    }
+
+    .pf-project-card:hover {
+      border-color: var(--border-h);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+    }
+
+    .pf-project-card h3 { font-size: 0.95rem; font-weight: 600; margin-bottom: 6px; }
+    .pf-project-card p { font-size: 0.8rem; color: var(--text2); line-height: 1.5; margin-bottom: 8px; }
+    .pf-project-tech { font-size: 0.7rem; color: var(--muted); font-style: italic; margin-bottom: 6px; }
+    .pf-project-link { font-size: 0.8rem; color: var(--accent); font-weight: 500; }
+
+    /* ── Education ──────────────────────────────────────────────────── */
+    .pf-edu-item { margin-bottom: 14px; }
+    .pf-edu-item h3 { font-size: 0.95rem; font-weight: 600; }
+    .pf-edu-meta { font-size: 0.8rem; color: var(--muted); }
+
+    /* ── Certifications ─────────────────────────────────────────────── */
+    .pf-certs { display: flex; flex-direction: column; gap: 12px; }
+    .pf-cert-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 16px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 10px;
+    }
+    .pf-cert-icon { font-size: 1.2rem; }
+    .pf-cert-item h4 { font-size: 0.875rem; font-weight: 600; }
+    .pf-cert-meta { font-size: 0.75rem; color: var(--muted); }
+
+    /* ── Achievements ───────────────────────────────────────────────── */
+    .pf-ach-item {
+      display: flex; align-items: flex-start; gap: 10px;
+      padding: 8px 0; font-size: 0.875rem; color: var(--text2);
+    }
+    .pf-ach-icon { font-size: 1rem; flex-shrink: 0; }
+
+    /* ── Footer ─────────────────────────────────────────────────────── */
+    .pf-footer {
+      position: relative; z-index: 1;
+      text-align: center; padding: 24px;
+      font-size: 0.75rem; color: var(--muted);
+      border-top: 1px solid var(--border);
+    }
+
+    .pf-footer a { color: var(--accent); }
+
+    /* ── Responsive ─────────────────────────────────────────────────── */
+    @media (max-width: 640px) {
+      .pf-hero { padding: 48px 16px 40px; }
+      .pf-hero__name { font-size: 1.8rem; }
+      .pf-container { padding: 0 16px 40px; }
+      .pf-section { padding: 24px 18px; }
+      .pf-projects-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Hero -->
+  <section class="pf-hero">
+    <div class="pf-hero__avatar">{{full_name_initial}}</div>
+    <h1 class="pf-hero__name">{{full_name}}</h1>
+    <p class="pf-hero__title">{{title}}</p>
+    <div class="pf-hero__contact">
+      {{contact_html}}
+    </div>
+  </section>
+
+  <!-- Sections -->
+  <div class="pf-container">
+
+    <!-- About -->
+    <section class="pf-section" id="about">
+      <div class="pf-section__title">
+        <span>👤</span><span>About Me</span><span class="pf-section__line"></span>
+      </div>
+      <p class="pf-about">{{summary}}</p>
+    </section>
+
+    <!-- Skills -->
+    <section class="pf-section" id="skills">
+      <div class="pf-section__title">
+        <span>💡</span><span>Skills</span><span class="pf-section__line"></span>
+      </div>
+      <div class="pf-skills-grid">
+        {{skills_html}}
+      </div>
+    </section>
+
+    <!-- Experience -->
+    <section class="pf-section" id="experience">
+      <div class="pf-section__title">
+        <span>💼</span><span>Experience</span><span class="pf-section__line"></span>
+      </div>
+      <div class="pf-timeline">
+        {{experience_html}}
+      </div>
+    </section>
+
+    <!-- Projects -->
+    <section class="pf-section" id="projects">
+      <div class="pf-section__title">
+        <span>🚀</span><span>Projects</span><span class="pf-section__line"></span>
+      </div>
+      <div class="pf-projects-grid">
+        {{projects_html}}
+      </div>
+    </section>
+
+    <!-- Education -->
+    <section class="pf-section" id="education">
+      <div class="pf-section__title">
+        <span>🎓</span><span>Education</span><span class="pf-section__line"></span>
+      </div>
+      {{education_html}}
+    </section>
+
+    <!-- Certifications -->
+    <section class="pf-section" id="certifications">
+      <div class="pf-section__title">
+        <span>🏅</span><span>Certifications</span><span class="pf-section__line"></span>
+      </div>
+      <div class="pf-certs">
+        {{certifications_html}}
+      </div>
+    </section>
+
+    <!-- Achievements -->
+    <section class="pf-section" id="achievements">
+      <div class="pf-section__title">
+        <span>🏆</span><span>Achievements</span><span class="pf-section__line"></span>
+      </div>
+      {{achievements_html}}
+    </section>
+
+  </div>
+
+  <footer class="pf-footer">
+    <p>Built with <a href="/">Paisapreneur AI</a> ⚡</p>
+  </footer>
+
+</body>
+</html>

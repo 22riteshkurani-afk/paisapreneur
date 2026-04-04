@@ -692,4 +692,65 @@ body::before {
   .btn-row .btn { min-width: unset; }
   .bp-header__name { font-size: 1.3rem; }
   .timeline-week { padding-left: 16px; }
+  .tool-card { flex-direction: column; text-align: center; }
+  .tool-card__arrow { display: none; }
 }
+
+/* ── Tool Card (Landing Page) ──────────────────────────────────────────── */
+.tool-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  padding: 20px 24px;
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.08), rgba(124, 58, 237, 0.08));
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  text-decoration: none;
+  color: var(--text-primary);
+  transition: all var(--duration-normal) var(--ease-out);
+  cursor: pointer;
+}
+
+.tool-card:hover {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(124, 58, 237, 0.15));
+  border-color: var(--accent-mid);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px var(--accent-glow);
+}
+
+.tool-card__icon {
+  font-size: 2rem;
+  flex-shrink: 0;
+}
+
+.tool-card__info {
+  flex: 1;
+}
+
+.tool-card__name {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin-bottom: 2px;
+  background: linear-gradient(135deg, var(--accent-start), var(--accent-end));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.tool-card__desc {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.tool-card__arrow {
+  font-size: 1.2rem;
+  color: var(--accent-mid);
+  flex-shrink: 0;
+  transition: transform var(--duration-fast) var(--ease-out);
+}
+
+.tool-card:hover .tool-card__arrow {
+  transform: translateX(4px);
+}
+

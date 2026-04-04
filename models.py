@@ -3,6 +3,8 @@
 from pydantic import BaseModel, Field
 
 
+# ── Blueprint Models (existing) ──────────────────────────────────────────────
+
 class IdeaRequest(BaseModel):
     """Validated industry input for idea generation."""
 
@@ -91,3 +93,103 @@ class HealthResponse(BaseModel):
 
     status: str = "ok"
     version: str = "2.0.0"
+
+
+# ── Resume Builder Models ────────────────────────────────────────────────────
+
+class Education(BaseModel):
+    """A single education entry."""
+
+    degree: str = ""
+    institution: str = ""
+    year: str = ""
+    gpa: str = ""
+
+
+class Experience(BaseModel):
+    """A single work experience entry."""
+
+    company: str = ""
+    role: str = ""
+    start_date: str = ""
+    end_date: str = ""
+    description: str = ""
+
+
+class Project(BaseModel):
+    """A single project entry."""
+
+    name: str = ""
+    description: str = ""
+    tech_stack: str = ""
+    link: str = ""
+
+
+class Certification(BaseModel):
+    """A single certification entry."""
+
+    name: str = ""
+    issuer: str = ""
+    date: str = ""
+
+
+class PersonalInfo(BaseModel):
+    """User's personal information."""
+
+    full_name: str = ""
+    title: str = ""
+    email: str = ""
+    phone: str = ""
+    location: str = ""
+    linkedin: str = ""
+    github: str = ""
+    website: str = ""
+    summary: str = ""
+
+
+class ResumeData(BaseModel):
+    """Complete resume data."""
+
+    personal: PersonalInfo = PersonalInfo()
+    education: list[Education] = []
+    skills: list[str] = []
+    experience: list[Experience] = []
+    projects: list[Project] = []
+    certifications: list[Certification] = []
+    achievements: list[str] = []
+    template: str = "modern"
+
+
+class ResumeSaveResponse(BaseModel):
+    """Response after saving a resume."""
+
+    id: str
+    message: str = "Resume saved successfully"
+
+
+class AISuggestionRequest(BaseModel):
+    """Request to get AI suggestions for a resume section."""
+
+    section: str = Field(
+        ...,
+        description="Section name: summary, experience, project, skills, achievement",
+        examples=["summary", "experience"],
+    )
+    content: str = Field(
+        ...,
+        min_length=2,
+        max_length=2000,
+        description="Current text content to improve",
+    )
+    context: str = Field(
+        default="",
+        max_length=500,
+        description="Additional context like job title or industry",
+    )
+
+
+class AISuggestionResponse(BaseModel):
+    """AI-improved text suggestion."""
+
+    original: str
+    suggestion: str

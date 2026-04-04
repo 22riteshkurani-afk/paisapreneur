@@ -1,17 +1,28 @@
-"""Paisapreneur AI — Business Blueprint Generator API."""
+"""Paisapreneur AI — Business Blueprint Generator + Resume Builder API."""
 
 import json
 import logging
+import os
 import time
+import uuid
 from collections import defaultdict
+from pathlib import Path
+
 from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from google import genai
 
 from config import settings
-from models import BlueprintResponse, HealthResponse
+from models import (
+    AISuggestionRequest,
+    AISuggestionResponse,
+    BlueprintResponse,
+    HealthResponse,
+    ResumeData,
+    ResumeSaveResponse,
+)
 
 # ── Logging ──────────────────────────────────────────────────────────────────
 logging.basicConfig(
@@ -24,8 +35,8 @@ logger = logging.getLogger("paisapreneur")
 # ── App ──────────────────────────────────────────────────────────────────────
 app = FastAPI(
     title="Paisapreneur AI",
-    description="Generate actionable business blueprints powered by Gemini AI",
-    version="2.0.0",
+    description="Generate actionable business blueprints and professional resumes powered by Gemini AI",
+    version="3.0.0",
 )
 
 # ── CORS ─────────────────────────────────────────────────────────────────────
@@ -42,6 +53,10 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # ── Gemini Client ────────────────────────────────────────────────────────────
 client = genai.Client(api_key=settings.GOOGLE_API_KEY)
+
+# ── Data Directory ───────────────────────────────────────────────────────────
+RESUME_DIR = Path("data/resumes")
+RESUME_DIR.mkdir(parents=True, exist_ok=True)
 
 # ── In-Memory Cache ─────────────────────────────────────────────────────────
 _cache: dict[str, tuple[float, dict]] = {}
@@ -103,6 +118,25 @@ Return ONLY valid JSON with NO markdown formatting. Use this EXACT structure:
 }}
 """
 
+AI_SUGGESTION_PROMPT = """You are a professional resume writing assistant. Improve the following {section} text to be more impactful, professional, and ATS-friendly.
+
+Context: {context}
+
+Original text:
+{content}
+
+Rules:
+- Keep it concise and action-oriented
+- Use strong action verbs
+- Quantify achievements where possible
+- Make it professional but natural
+- For summary: write in first person, 2-3 sentences max
+- For experience/projects: use bullet-point style descriptions
+- For skills: suggest additional relevant skills if appropriate
+- For achievements: make them specific and measurable
+
+Return ONLY the improved text. No explanations, no formatting markers, no quotes around the text."""
+
 
 def _check_rate_limit(client_ip: str) -> None:
     """Raise 429 if the client exceeds the rate limit."""
@@ -141,19 +175,27 @@ def _set_cache(industry: str, data: dict) -> None:
     _cache[industry.lower().strip()] = (time.time(), data)
 
 
-# ── Routes ───────────────────────────────────────────────────────────────────
+# ── Page Routes ──────────────────────────────────────────────────────────────
 
 @app.get("/", include_in_schema=False)
 def home():
-    """Serve the main frontend page."""
+    """Serve the main landing page."""
     return FileResponse("static/index.html")
+
+
+@app.get("/resume-builder", include_in_schema=False)
+def resume_builder_page():
+    """Serve the resume builder page."""
+    return FileResponse("static/resume-builder.html")
 
 
 @app.get("/health", response_model=HealthResponse, tags=["monitoring"])
 def health():
     """Health check endpoint for uptime monitoring."""
-    return HealthResponse()
+    return HealthResponse(status="ok", version="3.0.0")
 
+
+# ── Blueprint Routes ────────────────────────────────────────────────────────
 
 @app.get("/generate", response_model=BlueprintResponse, tags=["blueprints"])
 def generate_blueprint(
@@ -211,3 +253,201 @@ def generate_blueprint(
             status_code=500,
             detail="Something went wrong generating your blueprint. Please try again.",
         )
+
+
+# ── Resume Routes ────────────────────────────────────────────────────────────
+
+@app.post("/api/resume", response_model=ResumeSaveResponse, tags=["resume"])
+def save_resume(data: ResumeData):
+    """Save resume data and return a unique ID."""
+    resume_id = str(uuid.uuid4())[:8]
+    file_path = RESUME_DIR / f"{resume_id}.json"
+
+    try:
+        file_path.write_text(data.model_dump_json(indent=2), encoding="utf-8")
+        logger.info("Resume saved: %s", resume_id)
+        return ResumeSaveResponse(id=resume_id)
+    except Exception as e:
+        logger.error("Failed to save resume: %s", e)
+        raise HTTPException(status_code=500, detail="Failed to save resume.")
+
+
+@app.get("/api/resume/{resume_id}", response_model=ResumeData, tags=["resume"])
+def load_resume(resume_id: str):
+    """Load a saved resume by ID."""
+    file_path = RESUME_DIR / f"{resume_id}.json"
+
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="Resume not found.")
+
+    try:
+        raw = file_path.read_text(encoding="utf-8")
+        return ResumeData(**json.loads(raw))
+    except Exception as e:
+        logger.error("Failed to load resume %s: %s", resume_id, e)
+        raise HTTPException(status_code=500, detail="Failed to load resume.")
+
+
+@app.post("/api/resume/ai-suggest", response_model=AISuggestionResponse, tags=["resume"])
+def ai_suggest(request: Request, body: AISuggestionRequest):
+    """Get AI suggestions to improve resume text."""
+    client_ip = request.client.host if request.client else "unknown"
+    _check_rate_limit(client_ip)
+
+    try:
+        response = client.models.generate_content(
+            model=settings.GEMINI_MODEL,
+            contents=AI_SUGGESTION_PROMPT.format(
+                section=body.section,
+                context=body.context or "general professional",
+                content=body.content,
+            ),
+        )
+
+        suggestion = response.text.strip()
+        # Clean potential markdown formatting
+        suggestion = suggestion.replace("```", "").strip()
+
+        logger.info("AI suggestion generated for section='%s'", body.section)
+        return AISuggestionResponse(original=body.content, suggestion=suggestion)
+
+    except Exception as e:
+        logger.error("AI suggestion error: %s", e)
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to generate AI suggestion. Please try again.",
+        )
+
+
+@app.get("/portfolio/{resume_id}", include_in_schema=False)
+def portfolio_page(resume_id: str):
+    """Serve a generated portfolio page for a resume."""
+    file_path = RESUME_DIR / f"{resume_id}.json"
+
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="Portfolio not found.")
+
+    try:
+        raw = file_path.read_text(encoding="utf-8")
+        data = json.loads(raw)
+
+        # Read and render the portfolio template
+        template_path = Path("templates/portfolio.html")
+        template_content = template_path.read_text(encoding="utf-8")
+
+        # Simple template rendering (replacing placeholders)
+        html = _render_portfolio(template_content, data, resume_id)
+
+        return HTMLResponse(content=html)
+
+    except Exception as e:
+        logger.error("Failed to render portfolio %s: %s", resume_id, e)
+        raise HTTPException(status_code=500, detail="Failed to load portfolio.")
+
+
+def _render_portfolio(template: str, data: dict, resume_id: str) -> str:
+    """Render portfolio HTML from template and resume data."""
+    personal = data.get("personal", {})
+
+    # Build skills HTML
+    skills_html = ""
+    for skill in data.get("skills", []):
+        skills_html += f'<span class="pf-skill-tag">{skill}</span>\n'
+
+    # Build experience HTML
+    exp_html = ""
+    for exp in data.get("experience", []):
+        exp_html += f"""
+        <div class="pf-timeline-item">
+            <div class="pf-timeline-dot"></div>
+            <div class="pf-timeline-content">
+                <h3>{exp.get('role', '')}</h3>
+                <div class="pf-timeline-meta">{exp.get('company', '')} · {exp.get('start_date', '')} – {exp.get('end_date', 'Present')}</div>
+                <p>{exp.get('description', '')}</p>
+            </div>
+        </div>"""
+
+    # Build projects HTML
+    projects_html = ""
+    for proj in data.get("projects", []):
+        link_html = f'<a href="{proj.get("link", "#")}" target="_blank" class="pf-project-link">View Project →</a>' if proj.get("link") else ""
+        projects_html += f"""
+        <div class="pf-project-card">
+            <h3>{proj.get('name', '')}</h3>
+            <p>{proj.get('description', '')}</p>
+            <div class="pf-project-tech">{proj.get('tech_stack', '')}</div>
+            {link_html}
+        </div>"""
+
+    # Build education HTML
+    edu_html = ""
+    for edu in data.get("education", []):
+        gpa_str = f" · GPA: {edu.get('gpa')}" if edu.get("gpa") else ""
+        edu_html += f"""
+        <div class="pf-edu-item">
+            <h3>{edu.get('degree', '')}</h3>
+            <div class="pf-edu-meta">{edu.get('institution', '')} · {edu.get('year', '')}{gpa_str}</div>
+        </div>"""
+
+    # Build certifications HTML
+    cert_html = ""
+    for cert in data.get("certifications", []):
+        cert_html += f"""
+        <div class="pf-cert-item">
+            <span class="pf-cert-icon">🏅</span>
+            <div>
+                <h4>{cert.get('name', '')}</h4>
+                <div class="pf-cert-meta">{cert.get('issuer', '')} · {cert.get('date', '')}</div>
+            </div>
+        </div>"""
+
+    # Build achievements HTML
+    ach_html = ""
+    for ach in data.get("achievements", []):
+        ach_html += f'<div class="pf-ach-item"><span class="pf-ach-icon">🏆</span><span>{ach}</span></div>\n'
+
+    # Build contact HTML for hero
+    contact_parts = []
+    if personal.get("email"):
+        contact_parts.append(f'<a href="mailto:{personal["email"]}">{personal["email"]}</a>')
+    if personal.get("phone"):
+        contact_parts.append(f'<span>{personal["phone"]}</span>')
+    if personal.get("location"):
+        contact_parts.append(f'<span>{personal["location"]}</span>')
+    if personal.get("linkedin"):
+        url = personal["linkedin"] if personal["linkedin"].startswith("http") else "https://" + personal["linkedin"]
+        contact_parts.append(f'<a href="{url}" target="_blank">LinkedIn</a>')
+    if personal.get("github"):
+        url = personal["github"] if personal["github"].startswith("http") else "https://" + personal["github"]
+        contact_parts.append(f'<a href="{url}" target="_blank">GitHub</a>')
+    if personal.get("website"):
+        url = personal["website"] if personal["website"].startswith("http") else "https://" + personal["website"]
+        contact_parts.append(f'<a href="{url}" target="_blank">Website</a>')
+    contact_html = " · ".join(contact_parts)
+
+    # Name initial for avatar
+    name = personal.get("full_name", "?")
+    initial = name[0].upper() if name else "?"
+
+    # Replace placeholders
+    html = template
+    html = html.replace("{{full_name_initial}}", initial)
+    html = html.replace("{{contact_html}}", contact_html)
+    html = html.replace("{{full_name}}", personal.get("full_name", ""))
+    html = html.replace("{{title}}", personal.get("title", ""))
+    html = html.replace("{{email}}", personal.get("email", ""))
+    html = html.replace("{{phone}}", personal.get("phone", ""))
+    html = html.replace("{{location}}", personal.get("location", ""))
+    html = html.replace("{{linkedin}}", personal.get("linkedin", ""))
+    html = html.replace("{{github}}", personal.get("github", ""))
+    html = html.replace("{{website}}", personal.get("website", ""))
+    html = html.replace("{{summary}}", personal.get("summary", ""))
+    html = html.replace("{{skills_html}}", skills_html)
+    html = html.replace("{{experience_html}}", exp_html)
+    html = html.replace("{{projects_html}}", projects_html)
+    html = html.replace("{{education_html}}", edu_html)
+    html = html.replace("{{certifications_html}}", cert_html)
+    html = html.replace("{{achievements_html}}", ach_html)
+    html = html.replace("{{resume_id}}", resume_id)
+
+    return html

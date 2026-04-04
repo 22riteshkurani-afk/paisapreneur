@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Resume Builder — Paisapreneur AI</title>
+  <meta name="description" content="Build a stunning professional resume and portfolio in minutes. Fill a simple form, pick a template, and download your PDF — powered by AI." />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/resume-builder.css" />
+</head>
+
+<body>
+<div class="rb-app">
+
+  <!-- ─── Navbar ─────────────────────────────────────────── -->
+  <nav class="rb-navbar">
+    <a href="/" class="rb-navbar__brand">
+      <span class="rb-navbar__icon">⚡</span>
+      <span class="rb-navbar__title">Paisapreneur AI</span>
+    </a>
+    <div class="rb-navbar__links">
+      <a href="/" class="rb-navbar__link">Blueprint Generator</a>
+      <a href="/resume-builder" class="rb-navbar__link" style="color: var(--accent-mid); border-color: var(--accent-glow); background: var(--accent-glow);">Resume Builder</a>
+    </div>
+  </nav>
+
+  <!-- ─── Main Content ──────────────────────────────────── -->
+  <main class="rb-main">
+
+    <!-- Page Header -->
+    <div class="rb-page-header">
+      <h1 class="rb-page-header__title">Build Your Professional Resume</h1>
+      <p class="rb-page-header__desc">Fill in your details, choose a template, and get a polished resume + portfolio — enhanced by AI.</p>
+    </div>
+
+    <!-- Progress Bar -->
+    <div class="rb-progress">
+      <div class="rb-progress__steps">
+        <div class="rb-progress__step active" data-step="0" onclick="goToStep(0)">
+          <div class="rb-progress__dot">1</div>
+          <div class="rb-progress__label">Personal</div>
+        </div>
+        <div class="rb-progress__step" data-step="1" onclick="goToStep(1)">
+          <div class="rb-progress__dot">2</div>
+          <div class="rb-progress__label">Education</div>
+        </div>
+        <div class="rb-progress__step" data-step="2" onclick="goToStep(2)">
+          <div class="rb-progress__dot">3</div>
+          <div class="rb-progress__label">Skills</div>
+        </div>
+        <div class="rb-progress__step" data-step="3" onclick="goToStep(3)">
+          <div class="rb-progress__dot">4</div>
+          <div class="rb-progress__label">Experience</div>
+        </div>
+        <div class="rb-progress__step" data-step="4" onclick="goToStep(4)">
+          <div class="rb-progress__dot">5</div>
+          <div class="rb-progress__label">Projects</div>
+        </div>
+        <div class="rb-progress__step" data-step="5" onclick="goToStep(5)">
+          <div class="rb-progress__dot">6</div>
+          <div class="rb-progress__label">Certs</div>
+        </div>
+        <div class="rb-progress__step" data-step="6" onclick="goToStep(6)">
+          <div class="rb-progress__dot">7</div>
+          <div class="rb-progress__label">More</div>
+        </div>
+        <div class="rb-progress__step" data-step="7" onclick="goToStep(7)">
+          <div class="rb-progress__dot">✓</div>
+          <div class="rb-progress__label">Preview</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── Form Steps ──────────────────────────────────── -->
+    <div class="rb-form-container">
+
+      <!-- Step 0: Personal Info -->
+      <div class="rb-step active" data-step="0">
+        <div class="rb-card">
+          <div class="rb-card__title">
+            <span class="rb-card__icon">👤</span>
+            <span>Personal Information</span>
+            <span class="rb-card__line"></span>
+          </div>
+          <div class="rb-form-grid">
+            <div class="rb-field">
+              <label class="rb-field__label" for="personal-name">Full Name *</label>
+              <input class="rb-field__input" type="text" id="personal-name" placeholder="John Doe" />
+            </div>
+            <div class="rb-field">
+              <label class="rb-field__label" for="personal-title">Professional Title</label>
+              <input class="rb-field__input" type="text" id="personal-title" placeholder="Full Stack Developer" />
+            </div>
+            <div class="rb-field">
+              <label class="rb-field__label" for="personal-email">Email *</label>
+              <input class="rb-field__input" type="email" id="personal-email" placeholder="john@example.com" />
+            </div>
+            <div class="rb-field">
+              <label class="rb-field__label" for="personal-phone">Phone</label>
+              <input class="rb-field__input" type="tel" id="personal-phone" placeholder="+91 98765 43210" />
+            </div>
+            <div class="rb-field">
+              <label class="rb-field__label" for="personal-location">Location</label>
+              <input class="rb-field__input" type="text" id="personal-location" placeholder="Mumbai, India" />
+            </div>
+            <div class="rb-field">
+              <label class="rb-field__label" for="personal-linkedin">LinkedIn</label>
+              <input class="rb-field__input" type="url" id="personal-linkedin" placeholder="linkedin.com/in/johndoe" />
+            </div>
+            <div class="rb-field">
+              <label class="rb-field__label" for="personal-github">GitHub</label>
+              <input class="rb-field__input" type="url" id="personal-github" placeholder="github.com/johndoe" />
+            </div>
+            <div class="rb-field">
+              <label class="rb-field__label" for="personal-website">Website</label>
+              <input class="rb-field__input" type="url" id="personal-website" placeholder="johndoe.dev" />
+            </div>
+            <div class="rb-field rb-field--full">
+              <div style="display: flex; align-items: center; justify-content: space-between;">
+                <label class="rb-field__label" for="personal-summary">Professional Summary</label>
+                <button class="rb-ai-btn" onclick="aiSuggest('summary', 'personal-summary')">✨ AI Improve</button>
+              </div>
+              <textarea class="rb-field__textarea" id="personal-summary" rows="4" placeholder="Write a brief summary about yourself, your experience, and what you bring to the table..."></textarea>
+            </div>
+          </div>
+          <div class="rb-nav">
+            <div class="rb-nav__spacer"></div>
+            <button class="rb-btn rb-btn--primary" onclick="nextStep()">Next → Education</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 1: Education -->
+      <div class="rb-step" data-step="1">
+        <div class="rb-card">
+          <div class="rb-card__title">
+            <span class="rb-card__icon">🎓</span>
+            <span>Education</span>
+            <span class="rb-card__line"></span>
+          </div>
+          <div class="rb-entries" id="education-entries">
+            <!-- Dynamic entries inserted here -->
+          </div>
+          <button class="rb-add-btn" onclick="addEducation()" style="margin-top: 16px;">+ Add Education</button>
+          <div class="rb-nav">
+            <button class="rb-btn rb-btn--secondary" onclick="prevStep()">← Back</button>
+            <button class="rb-btn rb-btn--primary" onclick="nextStep()">Next → Skills</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 2: Skills -->
+      <div class="rb-step" data-step="2">
+        <div class="rb-card">
+          <div class="rb-card__title">
+            <span class="rb-card__icon">💡</span>
+            <span>Skills</span>
+            <span class="rb-card__line"></span>
+            <button class="rb-ai-btn" onclick="aiSuggestSkills()">✨ AI Suggest More</button>
+          </div>
+          <div class="rb-skills-area">
+            <div class="rb-skills-input-row">
+              <input class="rb-field__input" type="text" id="skill-input" placeholder="Type a skill and press Enter or click Add..." />
+              <button class="rb-skill-add-btn" onclick="addSkill()">Add</button>
+            </div>
+            <div class="rb-skills-tags" id="skills-tags">
+              <!-- Dynamic skill tags here -->
+            </div>
+          </div>
+          <div class="rb-nav">
+            <button class="rb-btn rb-btn--secondary" onclick="prevStep()">← Back</button>
+            <button class="rb-btn rb-btn--primary" onclick="nextStep()">Next → Experience</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 3: Experience -->
+      <div class="rb-step" data-step="3">
+        <div class="rb-card">
+          <div class="rb-card__title">
+            <span class="rb-card__icon">💼</span>
+            <span>Work Experience</span>
+            <span class="rb-card__line"></span>
+          </div>
+          <div class="rb-entries" id="experience-entries">
+            <!-- Dynamic entries -->
+          </div>
+          <button class="rb-add-btn" onclick="addExperience()" style="margin-top: 16px;">+ Add Experience</button>
+          <div class="rb-nav">
+            <button class="rb-btn rb-btn--secondary" onclick="prevStep()">← Back</button>
+            <button class="rb-btn rb-btn--primary" onclick="nextStep()">Next → Projects</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 4: Projects -->
+      <div class="rb-step" data-step="4">
+        <div class="rb-card">
+          <div class="rb-card__title">
+            <span class="rb-card__icon">🚀</span>
+            <span>Projects</span>
+            <span class="rb-card__line"></span>
+          </div>
+          <div class="rb-entries" id="project-entries">
+            <!-- Dynamic entries -->
+          </div>
+          <button class="rb-add-btn" onclick="addProject()" style="margin-top: 16px;">+ Add Project</button>
+          <div class="rb-nav">
+            <button class="rb-btn rb-btn--secondary" onclick="prevStep()">← Back</button>
+            <button class="rb-btn rb-btn--primary" onclick="nextStep()">Next → Certifications</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 5: Certifications -->
+      <div class="rb-step" data-step="5">
+        <div class="rb-card">
+          <div class="rb-card__title">
+            <span class="rb-card__icon">🏅</span>
+            <span>Certifications</span>
+            <span class="rb-card__line"></span>
+          </div>
+          <div class="rb-entries" id="certification-entries">
+            <!-- Dynamic entries -->
+          </div>
+          <button class="rb-add-btn" onclick="addCertification()" style="margin-top: 16px;">+ Add Certification</button>
+          <div class="rb-nav">
+            <button class="rb-btn rb-btn--secondary" onclick="prevStep()">← Back</button>
+            <button class="rb-btn rb-btn--primary" onclick="nextStep()">Next → Achievements</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 6: Achievements -->
+      <div class="rb-step" data-step="6">
+        <div class="rb-card">
+          <div class="rb-card__title">
+            <span class="rb-card__icon">🏆</span>
+            <span>Achievements</span>
+            <span class="rb-card__line"></span>
+          </div>
+          <div class="rb-simple-entries" id="achievement-entries">
+            <!-- Dynamic entries -->
+          </div>
+          <button class="rb-add-btn" onclick="addAchievement()" style="margin-top: 16px;">+ Add Achievement</button>
+          <div class="rb-nav">
+            <button class="rb-btn rb-btn--secondary" onclick="prevStep()">← Back</button>
+            <button class="rb-btn rb-btn--primary" onclick="nextStep()">Preview Resume →</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 7: Preview & Download -->
+      <div class="rb-step" data-step="7">
+        <div class="rb-card">
+          <div class="rb-card__title">
+            <span class="rb-card__icon">🎨</span>
+            <span>Choose a Template</span>
+            <span class="rb-card__line"></span>
+          </div>
+          <div class="rb-template-selector">
+            <div class="rb-template-option" data-template="classic" onclick="selectTemplate('classic')">
+              <div class="rb-template-option__check">✓</div>
+              <div class="rb-template-option__icon">📄</div>
+              <div class="rb-template-option__name">Classic</div>
+              <div class="rb-template-option__desc">Traditional, corporate-friendly</div>
+            </div>
+            <div class="rb-template-option selected" data-template="modern" onclick="selectTemplate('modern')">
+              <div class="rb-template-option__check">✓</div>
+              <div class="rb-template-option__icon">💎</div>
+              <div class="rb-template-option__name">Modern</div>
+              <div class="rb-template-option__desc">Bold colors, tech-forward</div>
+            </div>
+            <div class="rb-template-option" data-template="minimal" onclick="selectTemplate('minimal')">
+              <div class="rb-template-option__check">✓</div>
+              <div class="rb-template-option__icon">✨</div>
+              <div class="rb-template-option__name">Minimal</div>
+              <div class="rb-template-option__desc">Clean & refined</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Preview + Actions -->
+        <div class="rb-preview-wrapper">
+          <div class="rb-preview-actions">
+            <button class="rb-btn rb-btn--secondary" onclick="prevStep()">← Edit Details</button>
+            <div style="flex:1"></div>
+            <button class="rb-btn rb-btn--success" onclick="downloadPDF()">📥 Download PDF</button>
+            <button class="rb-btn rb-btn--primary" onclick="saveAndGetPortfolio()">🌐 Generate Portfolio</button>
+          </div>
+
+          <div class="rb-preview-frame" id="resume-preview">
+            <!-- Resume preview rendered here -->
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /.rb-form-container -->
+
+  </main>
+
+</div><!-- /.rb-app -->
+
+<script src="/static/resume-builder.js"></script>
+</body>
+</html>
