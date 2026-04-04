@@ -23,7 +23,11 @@ from models import (
     ResumeData,
     ResumeSaveResponse,
 )
-
+# After: from google import genai
+# Add these:
+from authlib.integrations.starlette_client import OAuth
+from starlette.middleware.sessions import SessionMiddleware
+from fastapi.responses import HTMLResponse, RedirectResponse
 # ── Logging ──────────────────────────────────────────────────────────────────
 logging.basicConfig(
     level=logging.INFO,
@@ -38,6 +42,19 @@ app = FastAPI(
     description="Generate actionable business blueprints and professional resumes powered by Gemini AI",
     version="3.0.0",
 )
+app.add_middleware(
+    SessionMiddleware,
+    secret_key=os.getenv("SECRET_KEY", "paisapreneur_secret_2026")
+)
+
+# Google OAuth
+oauth = OAuth()
+oauth.register(
+    name='google',
+    client_id=os.getenv("GOOGLE_CLIENT_ID"),
+    client_secret=os.getenv("GOOGLE_CLIENT_SECRET"),
+    server_metadata_url='https://accounts.google.com/.well-known/openid-configuration',
+    client_kwargs={'scope': 'openid email profile'}
 
 # ── CORS ─────────────────────────────────────────────────────────────────────
 app.add_middleware(
@@ -451,3 +468,49 @@ def _render_portfolio(template: str, data: dict, resume_id: str) -> str:
     html = html.replace("{{resume_id}}", resume_id)
 
     return html
+# ── Auth Routes ──────────────────────────────────────────────
+
+@app.get("/login", response_class=HTMLResponse)
+async def login_page(request: Request):
+    user = request.session.get("user")
+    if user:
+        return RedirectResponse("/dashboard")
+    with open("login.html") as f:
+        return f.read()
+
+@app.get("/login/google")
+async def google_login(request: Request):
+    redirect_uri = "https://paisapreneur.com/auth/google/callback"
+    return await oauth.google.authorize_redirect(request, redirect_uri)
+
+@app.get("/auth/google/callback")
+async def google_callback(request: Request):
+    token = await oauth.google.authorize_access_token(request)
+    user = token['userinfo']
+    request.session['user'] = {
+        "name": user['name'],
+        "email": user['email'],
+        "picture": user['picture']
+    }
+    return RedirectResponse("/dashboard")
+
+@app.get("/dashboard", response_class=HTMLResponse)
+async def dashboard(request: Request):
+    user = request.session.get("user")
+    if not user:
+        return RedirectResponse("/login")
+    return f"""
+    <html>
+    <body style="font-family:Arial;text-align:center;padding:50px;background:#0A0A0A;color:white">
+        <img src="{user['picture']}" width="80" style="border-radius:50%"><br><br>
+        <h2>Welcome, {user['name']}! 👋</h2>
+        <p style="color:#C9A84C">{user['email']}</p>
+        <a href="/logout" style="color:#C9A84C">Logout</a>
+    </body>
+    </html>
+    """
+
+@app.get("/logout")
+async def logout(request: Request):
+    request.session.clear()
+    return RedirectResponse("/login")
