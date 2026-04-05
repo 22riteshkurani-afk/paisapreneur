@@ -3,239 +3,129 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Paisapreneur AI — Business Blueprint & Resume Builder</title>
-  <meta name="description" content="Generate business blueprints and build professional resumes — powered by AI. From niche to revenue, from form to portfolio." />
-  <meta property="og:title" content="Paisapreneur AI — Blueprint & Resume Builder" />
-  <meta property="og:description" content="AI-powered business blueprints and professional resume builder for India." />
-
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/static/styles.css" />
+  <title>Paisapreneur AI</title>
+  <style>
+    body { margin: 0; font-family: 'Inter', sans-serif; background: #0A0A0A; color: white; display: flex; flex-direction: column; align-items: center; }
+    .container { max-width: 900px; width: 100%; padding: 40px 20px; }
+    h1 { font-size: 42px; text-align: center; }
+    .highlight { color: #6366f1; }
+    .input-box { display: flex; flex-direction: column; gap: 15px; margin-top: 30px; }
+    input { padding: 15px; font-size: 16px; border-radius: 8px; border: 1px solid #333; background: #111; color: white; width: 100%; box-sizing: border-box; }
+    button { padding: 15px; background: #6366f1; color: white; font-weight: bold; font-size: 16px; border: none; border-radius: 8px; cursor: pointer; }
+    button:hover { background: #4f46e5; }
+    .card { background: #111; border: 1px solid #333; border-radius: 8px; padding: 20px; margin-top: 20px; }
+    .loading { display: none; text-align: center; color: #888; }
+    
+    /* Chat UI */
+    .chat-section { display: none; margin-top: 30px; border-top: 1px solid #333; padding-top: 20px; }
+    .chat-window { max-height: 400px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px; border: 1px solid #333; padding: 15px; border-radius: 8px; background: #0f0f0f; }
+    .msg { padding: 10px 15px; border-radius: 8px; max-width: 80%; }
+    .user { background: #333; align-self: flex-end; }
+    .ai { background: #1e1b4b; align-self: flex-start; color: #a5b4fc; }
+    .chat-input { display: flex; gap: 10px; }
+    
+    /* Monetization */
+    .upgrade-banner { background: linear-gradient(90deg, #b45309, #d97706); padding: 15px; border-radius: 8px; text-align: center; font-weight: bold; margin-top: 20px; cursor: pointer;}
+  </style>
 </head>
-
 <body>
-  <div class="app-container">
-
-    <!-- ─── Header ──────────────────────────────────────────── -->
-    <header class="header">
-      <div class="header__logo">⚡</div>
-      <h1 class="header__title">Paisapreneur AI</h1>
-      <p class="header__subtitle">Your AI-powered startup toolkit</p>
-      <span class="header__version">v3.0 — Blueprint Engine + Resume Builder</span>
-    </header>
-
-    <!-- ─── Tool Selector ───────────────────────────────────── -->
-    <section class="glass-card" id="tool-selector" style="display:flex; gap:16px; flex-wrap:wrap;">
-      <a href="/resume-builder" class="tool-card" id="resume-tool-card">
-        <div class="tool-card__icon">📄</div>
-        <div class="tool-card__info">
-          <div class="tool-card__name">Resume Builder</div>
-          <div class="tool-card__desc">Build a professional resume & portfolio with AI suggestions</div>
-        </div>
-        <div class="tool-card__arrow">→</div>
-      </a>
-    </section>
-
-    <!-- ─── Input Card ──────────────────────────────────────── -->
-    <section class="glass-card" id="input-card">
-      <div class="input-group">
-        <label class="input-group__label" for="industry-input">🚀 Business Blueprint — Enter Your Niche or Interest</label>
-        <input
-          id="industry-input"
-          type="text"
-          class="input-field"
-          placeholder="e.g. pet grooming, AI tutoring, organic snacks..."
-          maxlength="100"
-          autocomplete="off"
-        />
-        <div class="tag-suggestions">
-          <span class="tag" data-value="Fitness">🏋️ Fitness</span>
-          <span class="tag" data-value="AI SaaS">🤖 AI SaaS</span>
-          <span class="tag" data-value="Cloud Kitchen">🍔 Cloud Kitchen</span>
-          <span class="tag" data-value="EdTech">📚 EdTech</span>
-          <span class="tag" data-value="D2C Fashion">👗 D2C Fashion</span>
-          <span class="tag" data-value="HealthTech">🏥 HealthTech</span>
-          <span class="tag" data-value="AgriTech">🌱 AgriTech</span>
-          <span class="tag" data-value="FinTech">💰 FinTech</span>
-        </div>
-        <button id="generate-btn" class="btn btn--primary" onclick="generateBlueprint()">
-          ⚡ Generate Blueprint
-        </button>
-      </div>
-    </section>
-
-    <!-- ─── Loading ─────────────────────────────────────────── -->
-    <section class="loading glass-card" id="loading">
-      <div class="loading__label">
-        <span class="spinner"></span>
-        Building your business blueprint...
-      </div>
-      <div class="skeleton skeleton--title"></div>
-      <div class="skeleton skeleton--text"></div>
-      <div class="skeleton skeleton--text"></div>
-      <div class="skeleton skeleton--short"></div>
-      <div class="skeleton skeleton--text"></div>
-      <div class="skeleton skeleton--short"></div>
-      <div class="skeleton skeleton--text"></div>
-      <div class="skeleton skeleton--short"></div>
-    </section>
-
-    <!-- ─── Blueprint Result ────────────────────────────────── -->
-    <div class="blueprint" id="blueprint">
-
-      <!-- Header -->
-      <div class="glass-card bp-header">
-        <div class="bp-header__badge">
-          <span class="bp-header__dot"></span>
-          AI-Generated Blueprint
-        </div>
-        <h2 class="bp-header__name" id="bp-name"></h2>
-        <p class="bp-header__tagline" id="bp-tagline"></p>
-      </div>
-
-      <!-- 1. Business Model -->
-      <section class="glass-card">
-        <div class="section-title">
-          <span class="section-title__icon">📋</span>
-          <span>Business Model</span>
-          <span class="section-title__line"></span>
-        </div>
-        <div class="info-grid">
-          <div class="info-item info-item--full">
-            <div class="info-item__label">Model</div>
-            <div class="info-item__value" id="bp-model"></div>
-          </div>
-          <div class="info-item info-item--full">
-            <div class="info-item__label">Value Proposition</div>
-            <div class="info-item__value" id="bp-value"></div>
-          </div>
-          <div class="info-item">
-            <div class="info-item__label">Target Audience</div>
-            <div class="info-item__value" id="bp-audience"></div>
-          </div>
-          <div class="info-item">
-            <div class="info-item__label">Problem Solved</div>
-            <div class="info-item__value" id="bp-problem"></div>
-          </div>
-          <div class="info-item info-item--full">
-            <div class="info-item__label">Solution</div>
-            <div class="info-item__value" id="bp-solution"></div>
-          </div>
-        </div>
-      </section>
-
-      <!-- 2. Revenue Plan -->
-      <section class="glass-card">
-        <div class="section-title">
-          <span class="section-title__icon">💰</span>
-          <span>Revenue Plan</span>
-          <span class="section-title__line"></span>
-        </div>
-        <table class="revenue-table">
-          <thead>
-            <tr>
-              <th>Source</th>
-              <th>Model</th>
-              <th>Est. Monthly</th>
-            </tr>
-          </thead>
-          <tbody id="revenue-body"></tbody>
-        </table>
-        <div class="info-grid" style="margin-top: 14px;">
-          <div class="info-item">
-            <div class="info-item__label">Pricing Strategy</div>
-            <div class="info-item__value" id="bp-pricing"></div>
-          </div>
-          <div class="info-item">
-            <div class="info-item__label">Break-Even</div>
-            <div class="info-item__value" id="bp-breakeven"></div>
-          </div>
-        </div>
-      </section>
-
-      <!-- 3. Acquisition Strategy -->
-      <section class="glass-card">
-        <div class="section-title">
-          <span class="section-title__icon">📢</span>
-          <span>Acquisition Strategy</span>
-          <span class="section-title__line"></span>
-        </div>
-        <div class="channel-list" id="bp-channels"></div>
-        <div class="info-grid" style="margin-top: 14px;">
-          <div class="info-item info-item--full">
-            <div class="info-item__label">First 100 Customers</div>
-            <div class="info-item__value" id="bp-first100"></div>
-          </div>
-          <div class="info-item info-item--full">
-            <div class="info-item__label">🔥 Growth Hack</div>
-            <div class="info-item__value" id="bp-hack"></div>
-          </div>
-        </div>
-      </section>
-
-      <!-- 4. Execution Timeline -->
-      <section class="glass-card">
-        <div class="section-title">
-          <span class="section-title__icon">📅</span>
-          <span>30-Day Execution Timeline</span>
-          <span class="section-title__line"></span>
-        </div>
-        <div class="timeline" id="bp-timeline"></div>
-      </section>
-
-      <!-- 5. Tools Stack -->
-      <section class="glass-card">
-        <div class="section-title">
-          <span class="section-title__icon">🛠️</span>
-          <span>Tools Stack</span>
-          <span class="section-title__line"></span>
-        </div>
-        <div class="tools-grid" id="bp-tools"></div>
-      </section>
-
-      <!-- Cost & Risk -->
-      <section class="glass-card">
-        <div class="info-grid" style="margin-bottom: 16px;">
-          <div class="info-item info-item--full">
-            <div class="info-item__label">💸 Estimated Startup Cost</div>
-            <div class="info-item__value" id="bp-cost" style="font-size: 1.1rem; font-weight: 700; color: var(--text-primary);"></div>
-          </div>
-        </div>
-        <div class="risk-banner">
-          <div class="risk-banner__icon">⚠️</div>
-          <div class="risk-banner__content">
-            <div class="risk-banner__label">Key Risk</div>
-            <div class="risk-banner__text" id="bp-risk"></div>
-            <div class="risk-banner__mitigation">
-              <div class="risk-banner__mit-label">🛡️ Mitigation</div>
-              <div class="risk-banner__text" id="bp-mitigation"></div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Actions -->
-      <section class="glass-card">
-        <div class="btn-row">
-          <button class="btn btn--secondary" onclick="downloadJSON()">📥 Download JSON</button>
-          <button class="btn btn--secondary" onclick="copyBlueprint()">📋 Copy All</button>
-        </div>
-        <div class="btn-row" style="margin-top: 10px;">
-          <button class="btn btn--success" onclick="shareBlueprint()">💬 Share on WhatsApp</button>
-          <button class="btn btn--gold" onclick="payNow()">👑 Unlock Premium ₹99</button>
-        </div>
-      </section>
-
+  <div class="container">
+    <h1>Build a <span class="highlight">Profitable Business</span></h1>
+    
+    <div class="input-box">
+      <input id="industry" placeholder="e.g. AI Agency, Cloud Kitchen" />
+      <button onclick="generate()">🚀 Generate Blueprint</button>
     </div>
 
-    <!-- ─── Footer ──────────────────────────────────────────── -->
-    <footer class="footer">
-      <p>Powered by Google Gemini AI · Built with ❤️ in India</p>
-    </footer>
+    <div class="loading" id="loading"><h2>🤖 Agents are thinking... (10-15s)</h2></div>
 
+    <div id="result"></div>
+    
+    <div class="chat-section" id="chat-section">
+      <h3 style="display:flex; justify-content:space-between; align-items:center;">
+        <span>💬 AI Mentor Chat</span>
+        <span style="font-size:12px; background:#fbbf24; color:black; padding:4px 8px; border-radius:4px;">Free limits apply</span>
+      </h3>
+      <div class="chat-window" id="chat-window">
+        <div class="msg ai">I have reviewed your blueprint. What execution blockers can I help you clear?</div>
+      </div>
+      <div class="chat-input">
+        <input id="chat-msg" placeholder="Ask a question..." onkeydown="if(event.key==='Enter') sendChat()" />
+        <button onclick="sendChat()">Send</button>
+      </div>
+      <div class="upgrade-banner" onclick="alert('Proceeding to Elite Checkout...')">
+        👑 Unlock Elite AI Mentor (₹999) for Unlimited Growth Playbooks
+      </div>
+    </div>
   </div>
 
-  <script src="/static/app.js"></script>
+  <script>
+    let currentBlueprint = null;
+
+    async function generate() {
+      const industry = document.getElementById("industry").value;
+      if(!industry) return alert("Enter industry");
+      
+      document.getElementById("loading").style.display = "block";
+      document.getElementById("result").innerHTML = "";
+      document.getElementById("chat-section").style.display = "none";
+
+      try {
+          const res = await fetch(`/generate?industry=${encodeURIComponent(industry)}`);
+          if (!res.ok) {
+              const err = await res.json();
+              throw new Error(err.detail || "Error");
+          }
+          const data = await res.json();
+          currentBlueprint = data;
+          
+          document.getElementById("loading").style.display = "none";
+          document.getElementById("chat-section").style.display = "block";
+          
+          document.getElementById("result").innerHTML = `
+            <div class="card">
+              <h2 style="margin-top:0;">${data.business_name}</h2>
+              <p><i>${data.tagline}</i></p>
+              <hr style="border-color:#333;">
+              <p><b>Model:</b> ${data.business_model}</p>
+              <p><b>Revenue:</b> ${data.revenue_streams && data.revenue_streams.length > 0 ? data.revenue_streams[0].model + ' ~ ' + data.revenue_streams[0].expected_monthly : "N/A"}</p>
+              <p><b>Timeline Preview:</b> ${data.timeline && data.timeline.length > 0 ? data.timeline[0].tasks.join(', ') : "N/A"}</p>
+            </div>
+          `;
+      } catch (err) {
+          document.getElementById("loading").style.display = "none";
+          alert(err.message);
+      }
+    }
+
+    async function sendChat() {
+        const input = document.getElementById('chat-msg');
+        const text = input.value.trim();
+        if(!text) return;
+        
+        input.value = "";
+        
+        const win = document.getElementById('chat-window');
+        win.innerHTML += `<div class="msg user">${text}</div>`;
+        win.scrollTop = win.scrollHeight;
+        
+        try {
+            const contextStr = currentBlueprint ? JSON.stringify({name: currentBlueprint.business_name, target: currentBlueprint.target_audience}) : "";
+            
+            const req = await fetch("/api/chat", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({message: text, blueprint_context: contextStr})
+            });
+            const res = await req.json();
+            
+            win.innerHTML += `<div class="msg ai">${res.reply}</div>`;
+            win.scrollTop = win.scrollHeight;
+            
+        } catch(err) {
+            win.innerHTML += `<div class="msg ai" style="color:red;">Error connecting to Mentor.</div>`;
+        }
+    }
+  </script>
 </body>
 </html>

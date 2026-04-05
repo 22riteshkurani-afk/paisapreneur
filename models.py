@@ -193,3 +193,48 @@ class AISuggestionResponse(BaseModel):
 
     original: str
     suggestion: str
+
+
+# ── AI Mentor / Chat Models ──────────────────────────────────────────────────
+
+class ChatRequest(BaseModel):
+    """Chat message from the user to the AI Mentor."""
+
+    message: str = Field(..., min_length=1, max_length=1000)
+    blueprint_context: str = Field(default="", description="Optional context about the current blueprint being viewed.")
+
+class ChatResponse(BaseModel):
+    """Response from the AI Mentor."""
+    
+    reply: str
+
+
+# ── Intermediate Agent Models ────────────────────────────────────────────────
+
+class Agent1Output(BaseModel):
+    """Agent 1: Idea Validator & Business Model."""
+    business_name: str
+    tagline: str
+    business_model: str
+    value_proposition: str
+    target_audience: str
+    problem_solved: str
+    solution: str
+
+class Agent2Output(BaseModel):
+    """Agent 2: Revenue Planner."""
+    revenue_streams: list[RevenueStream]
+    pricing_strategy: str
+    break_even_estimate: str
+
+class Agent3Output(BaseModel):
+    """Agent 3: Execution Coach."""
+    acquisition_channels: list[str]
+    first_100_customers: str
+    growth_hack: str
+    timeline: list[TimelineWeek]
+    tools: dict[str, str]
+    estimated_startup_cost: str
+    key_risk: str
+    mitigation: str
+

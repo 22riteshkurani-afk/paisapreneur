@@ -1,0 +1,6 @@
+ImportError while loading conftest 'C:\Users\Gaming\Desktop\paisapreneur\tests\conftest.py'.
+tests\conftest.py:8: in <module>
+    from main import app, _cache, _rate_limits
+main.py:15: in <module>
+    import google.generativeai as genai
+E   ModuleNotFoundError: No module named 'google.generativeai'
