@@ -1,0 +1,13 @@
+.venv/
+venv/
+__pycache__/
+*.sqlite3
+*.db
+.pytest_cache/
+.env
+Dockerfile
+.dockerignore
+.git/
+test_output.txt
+test_output2.txt
+test_output3.txt

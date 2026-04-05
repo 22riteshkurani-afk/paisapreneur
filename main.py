@@ -222,13 +222,37 @@ async def google_callback(request: Request, db: Session = Depends(get_db)):
 
 
 @app.get("/dashboard", response_class=HTMLResponse)
-async def dashboard(request: Request, db: Session = Depends(get_db)):
+async def dashboard(request: Request, order_id: str | None = None, db: Session = Depends(get_db)):
     user = get_current_user(request, db)
     if not user:
         return RedirectResponse("/login")
     
     session_user = request.session.get("user")
     
+    payment_status = ""
+    if order_id:
+        # Call verify
+        url = f"https://sandbox.cashfree.com/pg/orders/{order_id}" if settings.CASHFREE_ENV == "SANDBOX" else f"https://api.cashfree.com/pg/orders/{order_id}"
+        headers = {
+            "accept": "application/json",
+            "x-api-version": "2023-08-01",
+            "x-client-id": settings.CASHFREE_APP_ID,
+            "x-client-secret": settings.CASHFREE_SECRET_KEY,
+        }
+        import httpx
+        async with httpx.AsyncClient() as client:
+            response = await client.get(url, headers=headers)
+            if response.status_code == 200:
+                data = response.json()
+                if data.get("order_status") == "PAID":
+                    if user.tier != "999":
+                        user.tier = "999"
+                        db.commit()
+                        request.session["user"]["tier"] = "999"
+                    payment_status = f"<div style='background:#10b981;padding:10px;border-radius:5px;margin-bottom:15px;'>🎉 Payment Successful! Account upgraded to Elite.</div>"
+                else:
+                    payment_status = f"<div style='background:#ef4444;padding:10px;border-radius:5px;margin-bottom:15px;'>Payment Failed or Incomplete.</div>"
+
     return f"""
     <html>
     <body style="font-family:Arial;text-align:center;padding:50px;background:#0A0A0A;color:white">
@@ -236,6 +260,7 @@ async def dashboard(request: Request, db: Session = Depends(get_db)):
         <h2>Welcome, {user.name}! 👋</h2>
         <p style="color:#C9A84C">{user.email}</p>
         <p>Your Tier: <strong style="color:var(--accent-mid)">{user.tier.upper()}</strong></p>
+        {payment_status}
         <div style="margin:20px;display:flex;gap:15px;justify-content:center;">
             <a href="/" style="padding:10px 20px;background:#6366f1;color:white;text-decoration:none;border-radius:5px;">Go to App</a>
             <a href="/logout" style="padding:10px 20px;background:#ef4444;color:white;text-decoration:none;border-radius:5px;">Logout</a>
@@ -348,6 +373,94 @@ def ai_mentor_chat(request: Request, payload: ChatRequest, db: Session = Depends
     except Exception as e:
         logger.error(f"AI Mentor Error: {e}")
         raise HTTPException(status_code=500, detail="The AI Mentor is currently unavailable.")
+
+import httpx
+from database import get_db, init_db, User, ChatHistory
+from pydantic import BaseModel # Needed for endpoint models
+
+class OrderCreateRequest(BaseModel):
+    plan_tier: str = "elite"
+
+@app.post("/create-cashfree-order", tags=["payments"])
+async def create_cashfree_order(request: Request, body: OrderCreateRequest, db: Session = Depends(get_db)):
+    """Creates a Cashfree order for unlocking Elite tier."""
+    session_user = request.session.get("user")
+    if not session_user:
+        raise HTTPException(status_code=401, detail="Must be logged in to purchase.")
+
+    user_id = session_user["id"]
+    order_id = f"ORDER_{user_id}_{int(time.time())}"
+    
+    # Target Amount for Elite
+    order_amount = 999.00
+    
+    url = "https://sandbox.cashfree.com/pg/orders" if settings.CASHFREE_ENV == "SANDBOX" else "https://api.cashfree.com/pg/orders"
+    
+    headers = {
+        "accept": "application/json",
+        "content-type": "application/json",
+        "x-api-version": "2023-08-01",
+        "x-client-id": settings.CASHFREE_APP_ID,
+        "x-client-secret": settings.CASHFREE_SECRET_KEY,
+    }
+    
+    payload = {
+        "order_amount": order_amount,
+        "order_currency": "INR",
+        "customer_details": {
+            "customer_id": f"CUST_{user_id}",
+            "customer_email": session_user.get("email", "unknown@test.com"),
+            "customer_phone": "9999999999" # Cashfree requires a valid length phone string
+        },
+        "order_meta": {
+            "return_url": f"http://localhost:8000/dashboard?order_id={order_id}"
+        },
+        "order_id": order_id
+    }
+    
+    async with httpx.AsyncClient() as client:
+        response = await client.post(url, json=payload, headers=headers)
+        if response.status_code != 200:
+            logger.error(f"Cashfree Error: {response.text}")
+            raise HTTPException(status_code=400, detail="Failed to initialize payment gateway.")
+        
+        data = response.json()
+        return {"payment_session_id": data["payment_session_id"], "order_id": order_id}
+
+@app.get("/verify-payment", tags=["payments"])
+async def verify_payment(order_id: str, request: Request, db: Session = Depends(get_db)):
+    """Verifies a Cashfree payment after redirect."""
+    url = f"https://sandbox.cashfree.com/pg/orders/{order_id}" if settings.CASHFREE_ENV == "SANDBOX" else f"https://api.cashfree.com/pg/orders/{order_id}"
+    
+    headers = {
+        "accept": "application/json",
+        "x-api-version": "2023-08-01",
+        "x-client-id": settings.CASHFREE_APP_ID,
+        "x-client-secret": settings.CASHFREE_SECRET_KEY,
+    }
+    
+    async with httpx.AsyncClient() as client:
+        response = await client.get(url, headers=headers)
+        if response.status_code == 200:
+            data = response.json()
+            if data.get("order_status") == "PAID":
+                # Find User corresponding to this order. We attached user_id to order_id: ORDER_{user_id}_{timestamp}
+                parts = order_id.split("_")
+                try:
+                    user_id = int(parts[1])
+                    user = db.query(User).filter(User.id == user_id).first()
+                    if user and user.tier != "999":
+                        user.tier = "999"
+                        db.commit()
+                        # Update session scope directly
+                        if "user" in request.session:
+                            request.session["user"]["tier"] = "999"
+                        return {"status": "success", "message": "Upgraded to Elite!"}
+                    return {"status": "already_upgraded"}
+                except Exception as e:
+                    logger.error(f"Error handling success map: {e}")
+                    
+        return {"status": "failed", "message": "Payment incomplete."}
 
 # Initialize DB on load
 init_db()
