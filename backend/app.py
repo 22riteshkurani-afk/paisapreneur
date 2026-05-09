@@ -13,10 +13,10 @@ from backend.models import (
     Venture,
 )
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-FRONTEND_DIST = os.path.abspath(os.path.join(BASE_DIR, "..", "frontend", "dist"))
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+FRONTEND_DIST = os.path.join(BASE_DIR, "frontend", "dist")
 
-app = Flask(__name__, static_folder=FRONTEND_DIST, static_url_path="/")
+app = Flask(__name__, static_folder=FRONTEND_DIST, static_url_path="")
 CORS(app, resources={r"/api/*": {"origins": "*"}})
 
 database_url = os.getenv("DATABASE_URL", "sqlite:///backend/paisapreneur.db")
@@ -471,12 +471,14 @@ def app_info():
 @app.route("/", defaults={"path": ""})
 @app.route("/<path:path>")
 def serve_frontend(path):
-    file_path = os.path.join(app.static_folder, path)
+    dist_dir = app.static_folder
 
-    if path != "" and os.path.exists(file_path):
-        return send_from_directory(app.static_folder, path)
+    requested = os.path.join(dist_dir, path)
 
-    return send_from_directory(app.static_folder, "index.html")
+    if path and os.path.exists(requested):
+        return send_from_directory(dist_dir, path)
+
+    return send_from_directory(dist_dir, "index.html")
 
 
 if __name__ == "__main__":
