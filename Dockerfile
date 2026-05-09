@@ -1,23 +1,23 @@
-# Use the official Python lightweight image
-FROM python:3.10
+# --- Frontend build stage ---
+FROM node:20-alpine AS frontend-builder
+WORKDIR /app/frontend
+COPY frontend/package.json frontend/postcss.config.js frontend/tailwind.config.js frontend/vite.config.js ./
+COPY frontend/src ./src
+COPY frontend/index.html ./
+RUN npm install && npm run build
 
-# Set environment variables
+# --- Backend runtime stage ---
+FROM python:3.11-slim
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
-
-# Set the working directory
 WORKDIR /app
 
-# Install dependencies (we copy this first to leverage Docker cache)
-COPY requirements.txt .
+COPY backend/requirements.txt ./backend/requirements.txt
 RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
+    pip install --no-cache-dir -r backend/requirements.txt
 
-# Copy the rest of the application code
-COPY . .
+COPY backend ./backend
+COPY --from=frontend-builder /app/frontend/dist ./frontend/dist
 
-# Expose the port Uvicorn runs on
 EXPOSE 8000
-
-# Run the app with Uvicorn optimized for production
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "4", "--proxy-headers"]
+CMD ["gunicorn", "backend.app:app", "--bind", "0.0.0.0:8000", "--workers", "4"]
