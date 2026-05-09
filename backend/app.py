@@ -3,8 +3,8 @@ import os
 from datetime import datetime
 from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
-from database import init_db, session_scope
-from models import (
+from backend.database import init_db, session_scope
+from backend.models import (
     BusinessIdea,
     DailyTask,
     FounderProfile,
