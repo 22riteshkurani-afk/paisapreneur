@@ -13,8 +13,8 @@ from backend.models import (
     Venture,
 )
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-FRONTEND_DIST = os.path.join(BASE_DIR, "frontend", "dist")
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+FRONTEND_DIST = os.path.abspath(os.path.join(BASE_DIR, "..", "frontend", "dist"))
 
 app = Flask(__name__, static_folder=FRONTEND_DIST, static_url_path="")
 CORS(app, resources={r"/api/*": {"origins": "*"}})
