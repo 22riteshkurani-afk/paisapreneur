@@ -117,7 +117,7 @@
         try {
             const contextStr = currentBlueprint ? JSON.stringify({name: currentBlueprint.business_name, target: currentBlueprint.target_audience}) : "";
             
-            const req = await fetch("/api/chat", {
+            const req = await fetch("http://127.0.0.1:8000/api/chat", {
                 method: "POST",
                 headers: {"Content-Type": "application/json"},
                 body: JSON.stringify({message: text, blueprint_context: contextStr})

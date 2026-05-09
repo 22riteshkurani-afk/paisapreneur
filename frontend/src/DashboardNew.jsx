@@ -35,7 +35,7 @@ const DashboardNew = ({ data, onRestart }) => {
     setActionMessage("");
 
     try {
-      const response = await fetch("/api/founder/task/toggle", {
+      const response = await fetch("http://127.0.0.1:8000/api/founder/task/toggle", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: dashboard.profile.email, taskId }),
@@ -59,7 +59,7 @@ const DashboardNew = ({ data, onRestart }) => {
     setActionMessage("");
 
     try {
-      const response = await fetch("/api/founder/journal", {
+      const response = await fetch("http://127.0.0.1:8000/api/founder/journal", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
