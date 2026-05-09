@@ -468,12 +468,15 @@ def app_info():
     return jsonify(name="Paisapreneur", stack="React + Tailwind + Flask", database=database_url)
 
 
-@app.route("/", defaults={"path": "index.html"})
+@app.route("/", defaults={"path": ""})
 @app.route("/<path:path>")
 def serve_frontend(path):
-    if os.path.exists(os.path.join(FRONTEND_DIST, path)):
-        return send_from_directory(FRONTEND_DIST, path)
-    return send_from_directory(FRONTEND_DIST, "index.html")
+    file_path = os.path.join(app.static_folder, path)
+
+    if path != "" and os.path.exists(file_path):
+        return send_from_directory(app.static_folder, path)
+
+    return send_from_directory(app.static_folder, "index.html")
 
 
 if __name__ == "__main__":
