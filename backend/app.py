@@ -3,6 +3,7 @@ import os
 from datetime import datetime
 from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
+from flask_talisman import Talisman
 from backend.database import init_db, session_scope
 from backend.models import (
     BusinessIdea,
@@ -23,6 +24,7 @@ FRONTEND_DIST = os.path.join(
 
 app = Flask(__name__, static_folder=FRONTEND_DIST, static_url_path="")
 CORS(app, resources={r"/api/*": {"origins": "*"}})
+Talisman(app)
 
 database_url = os.getenv("DATABASE_URL", "sqlite:///backend/paisapreneur.db")
 init_db(database_url)
