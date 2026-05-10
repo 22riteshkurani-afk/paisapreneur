@@ -21,9 +21,6 @@ FRONTEND_DIST = os.path.join(
     "dist"
 )
 
-print("FRONTEND_DIST:", FRONTEND_DIST)
-print("INDEX EXISTS:", os.path.exists(os.path.join(FRONTEND_DIST, "index.html")))
-
 app = Flask(__name__, static_folder=FRONTEND_DIST, static_url_path="")
 CORS(app, resources={r"/api/*": {"origins": "*"}})
 
