@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { motion, useInView } from "framer-motion";
-import { ArrowRight, Play } from "lucide-react";
+import { ArrowRight, Play, LogOut } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "./hooks/useAuth";
 import Onboarding from "./Onboarding";
 import DashboardNew from "./DashboardNew";
 
@@ -10,64 +12,56 @@ const fadeInUp = {
   transition: { duration: 0.6 },
 };
 
-const AnimatedCounter = ({ end, duration = 2000 }) => {
-  const [count, setCount] = useState(0);
-  const { ref, inView } = useInView({ triggerOnce: true });
-
-  useEffect(() => {
-    if (inView) {
-      let start = 0;
-      const increment = end / (duration / 16);
-      const timer = setInterval(() => {
-        start += increment;
-        if (start >= end) {
-          setCount(end);
-          clearInterval(timer);
-        } else {
-          setCount(Math.floor(start));
-        }
-      }, 16);
-      return () => clearInterval(timer);
-    }
-  }, [end, duration, inView]);
-
-  return <span ref={ref}>{count.toLocaleString()}+</span>;
-};
-
 function App() {
+  const navigate = useNavigate();
+  const { user, token, logout } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [dashboardData, setDashboardData] = useState(null);
-  const [founderEmail, setFounderEmail] = useState(() => localStorage.getItem("founderEmail") || null);
-  const [loading, setLoading] = useState(Boolean(founderEmail));
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  // Check onboarding status on mount
   useEffect(() => {
-    if (founderEmail) {
-      loadDashboard(founderEmail);
+    if (user && token && !user.onboarding_completed) {
+      setShowOnboarding(true);
+    } else if (user && token && user.onboarding_completed) {
+      // Load dashboard data
+      loadDashboard();
     }
-  }, [founderEmail]);
+  }, [user, token]);
 
-  const loadDashboard = async (email) => {
+  const loadDashboard = async () => {
+    if (!token) return;
+    
     setLoading(true);
     setError("");
     try {
-      const response = await fetch(`/api/founder/dashboard?email=${encodeURIComponent(email)}`);
+      // Get founder profile using email from auth user
+      const response = await fetch(`/api/founder/dashboard?email=${encodeURIComponent(user.email)}`, {
+        headers: {
+          "Authorization": `Bearer ${token}`,
+        },
+      });
+      
       if (!response.ok) {
         throw new Error("Unable to load your founder dashboard.");
       }
+      
       const data = await response.json();
       setDashboardData(data);
       setShowOnboarding(false);
-      localStorage.setItem("founderEmail", email);
     } catch (err) {
       console.error(err);
       setError(err.message || "Unable to connect to the founder OS.");
-      setShowOnboarding(true);
-      setDashboardData(null);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleLogout = async () => {
+    await logout();
+    navigate("/login");
   };
 
   const handleStartOnboarding = () => {
@@ -75,42 +69,56 @@ function App() {
   };
 
   const handleOnboardingComplete = async (profile) => {
+    if (!token) return;
+    
     setLoading(true);
     setError("");
     try {
       const response = await fetch("/api/founder/profile", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
         body: JSON.stringify(profile),
       });
+      
       if (!response.ok) {
         const body = await response.json().catch(() => ({}));
         throw new Error(body.error || "Unable to save your profile.");
       }
+      
       const data = await response.json();
       setDashboardData(data);
-      const email = profile.email.toLowerCase();
-      setFounderEmail(email);
-      localStorage.setItem("founderEmail", email);
       setShowOnboarding(false);
+      
+      // Mark onboarding as completed
+      try {
+        await fetch("/api/auth/complete-onboarding", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${token}`,
+          },
+        });
+      } catch (err) {
+        console.error("Failed to mark onboarding complete:", err);
+      }
     } catch (err) {
       console.error(err);
       setError(err.message || "Failed to save founder profile.");
-      setDashboardData(null);
-      setShowOnboarding(true);
     } finally {
       setLoading(false);
     }
   };
 
   const handleRestartOnboarding = () => {
-    localStorage.removeItem("founderEmail");
     setFounderEmail(null);
     setDashboardData(null);
     setShowOnboarding(true);
   };
 
-  if (loading) {
+  // Loading state
+  if (loading && !dashboardData) {
     return (
       <div className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center px-4">
         <div className="rounded-3xl border border-slate-800/70 bg-slate-900/90 p-10 shadow-2xl text-center">
@@ -121,13 +129,24 @@ function App() {
     );
   }
 
+  // Show onboarding if user hasn't completed it
   if (showOnboarding || !dashboardData) {
     return <Onboarding onComplete={handleOnboardingComplete} error={error} />;
   }
 
-  if (dashboardData) {
-    return <DashboardNew data={dashboardData} onRestart={handleRestartOnboarding} />;
+  // Show dashboard
+  if (dashboardData && !showOnboarding) {
+    return (
+      <DashboardNew 
+        data={dashboardData} 
+        onRestart={handleRestartOnboarding}
+        user={user}
+        onLogout={handleLogout}
+      />
+    );
   }
+
+  return null;
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 overflow-x-hidden relative">

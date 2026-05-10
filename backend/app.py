@@ -1,9 +1,10 @@
 import json
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
 from flask_talisman import Talisman
+from flask_jwt_extended import JWTManager
 from backend.database import init_db, session_scope
 from backend.models import (
     BusinessIdea,
@@ -13,6 +14,7 @@ from backend.models import (
     Milestone,
     Venture,
 )
+from backend.auth import auth_bp
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -23,9 +25,63 @@ FRONTEND_DIST = os.path.join(
 )
 
 app = Flask(__name__, static_folder=FRONTEND_DIST, static_url_path="")
-CORS(app, resources={r"/api/*": {"origins": "*"}})
+
+# ============================================================================
+# SECURITY CONFIGURATION
+# ============================================================================
+# CORS configuration - hardened for production
+CORS(app, resources={
+    r"/api/*": {
+        "origins": os.getenv("CORS_ORIGINS", "http://localhost:5173,http://localhost:8000").split(","),
+        "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        "allow_headers": ["Content-Type", "Authorization"],
+        "supports_credentials": True,
+        "max_age": 3600,
+    }
+})
+
+# Talisman - HTTPS and security headers
 Talisman(app)
 
+# ============================================================================
+# JWT CONFIGURATION
+# ============================================================================
+app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY", "change-this-in-production")
+app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(minutes=15)
+app.config["JWT_REFRESH_TOKEN_EXPIRES"] = timedelta(days=7)
+app.config["JWT_TOKEN_LOCATION"] = ["headers"]
+app.config["JWT_HEADER_NAME"] = "Authorization"
+app.config["JWT_HEADER_TYPE"] = "Bearer"
+
+jwt = JWTManager(app)
+
+# ============================================================================
+# ERROR HANDLERS
+# ============================================================================
+@app.errorhandler(401)
+def unauthorized(error):
+    return jsonify({"error": "Unauthorized - invalid or missing token"}), 401
+
+@app.errorhandler(403)
+def forbidden(error):
+    return jsonify({"error": "Forbidden"}), 403
+
+@app.errorhandler(404)
+def not_found(error):
+    return jsonify({"error": "Not found"}), 404
+
+@app.errorhandler(500)
+def internal_error(error):
+    return jsonify({"error": "Internal server error"}), 500
+
+# ============================================================================
+# REGISTER BLUEPRINTS
+# ============================================================================
+app.register_blueprint(auth_bp)
+
+# ============================================================================
+# DATABASE INITIALIZATION
+# ============================================================================
 database_url = os.getenv("DATABASE_URL", "sqlite:///backend/paisapreneur.db")
 init_db(database_url)
 

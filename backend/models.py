@@ -9,14 +9,29 @@ class User(Base):
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True)
-    email = Column(String(256), unique=True, nullable=False)
-    name = Column(String(256), nullable=True)
+    email = Column(String(256), unique=True, nullable=False, index=True)
+    full_name = Column(String(256), nullable=True)
+    avatar_url = Column(String(512), nullable=True)
+    provider = Column(String(64), default="google")  # "google", "email", etc.
+    provider_id = Column(String(256), nullable=True, unique=True)
+    onboarding_completed = Column(Boolean, default=False)
+    subscription_tier = Column(String(64), default="free")  # free, pro, enterprise
+    last_login = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     def to_dict(self):
         return {
             "id": self.id,
             "email": self.email,
-            "name": self.name,
+            "full_name": self.full_name,
+            "avatar_url": self.avatar_url,
+            "provider": self.provider,
+            "onboarding_completed": self.onboarding_completed,
+            "subscription_tier": self.subscription_tier,
+            "last_login": self.last_login.isoformat() if self.last_login else None,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
         }
 
 class FounderProfile(Base):
