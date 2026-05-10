@@ -471,14 +471,15 @@ def app_info():
 @app.route("/", defaults={"path": ""})
 @app.route("/<path:path>")
 def serve_frontend(path):
-    dist_dir = app.static_folder
+    static_folder = app.static_folder
 
-    requested = os.path.join(dist_dir, path)
+    if path != "":
+        requested_path = os.path.join(static_folder, path)
 
-    if path and os.path.exists(requested):
-        return send_from_directory(dist_dir, path)
+        if os.path.exists(requested_path):
+            return send_from_directory(static_folder, path)
 
-    return send_from_directory(dist_dir, "index.html")
+    return send_from_directory(static_folder, "index.html")
 
 
 if __name__ == "__main__":
