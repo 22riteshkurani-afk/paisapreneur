@@ -14,7 +14,15 @@ from backend.models import (
 )
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-FRONTEND_DIST = os.path.abspath(os.path.join(BASE_DIR, "..", "frontend", "dist"))
+
+FRONTEND_DIST = os.path.join(
+    os.getcwd(),
+    "frontend",
+    "dist"
+)
+
+print("FRONTEND_DIST:", FRONTEND_DIST)
+print("INDEX EXISTS:", os.path.exists(os.path.join(FRONTEND_DIST, "index.html")))
 
 app = Flask(__name__, static_folder=FRONTEND_DIST, static_url_path="")
 CORS(app, resources={r"/api/*": {"origins": "*"}})
