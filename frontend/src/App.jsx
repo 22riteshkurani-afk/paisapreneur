@@ -6,8 +6,8 @@ function App() {
 
   async function askAI() {
     const res = await fetch(
-      `http://127.0.0.1:8000/chat?prompt=${encodeURIComponent(prompt)}`
-    );
+  `http://127.0.0.1:8000/chat?prompt=${encodeURIComponent(prompt)}`
+);
 
     const data = await res.json();
     setResponse(data.response);
