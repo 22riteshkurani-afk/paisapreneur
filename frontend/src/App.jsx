@@ -1,45 +1,29 @@
-import { useState } from "react";
+// App entry point that now renders the new scalable layout and routes.
+import { Routes, Route } from "react-router-dom";
+import Layout from "./layout/Layout";
+import Dashboard from "./pages/Dashboard";
+import AICareerCoach from "./pages/AICareerCoach";
+import ResumeBuilder from "./pages/ResumeBuilder";
+import InterviewCoach from "./pages/InterviewCoach";
+import JobFinder from "./pages/JobFinder";
+import CareerPassport from "./pages/CareerPassport";
+import BusinessMentor from "./pages/BusinessMentor";
+import Settings from "./pages/Settings";
 
 function App() {
-  const [prompt, setPrompt] = useState("");
-  const [response, setResponse] = useState("");
-
-  async function askAI() {
-    const res = await fetch(
-  `http://127.0.0.1:8000/chat?prompt=${encodeURIComponent(prompt)}`
-);
-
-    const data = await res.json();
-    setResponse(data.response);
-  }
-
   return (
-    <div style={{ padding: "30px", maxWidth: "900px", margin: "auto" }}>
-      <h1>🚀 Paisapreneur AI</h1>
-
-      <textarea
-        rows={6}
-        style={{ width: "100%" }}
-        placeholder="Ask anything..."
-        value={prompt}
-        onChange={(e) => setPrompt(e.target.value)}
-      />
-
-      <br />
-      <br />
-
-      <button onClick={askAI}>
-        Ask AI
-      </button>
-
-      <hr />
-
-      <h2>AI Response</h2>
-
-      <pre style={{ whiteSpace: "pre-wrap" }}>
-        {response}
-      </pre>
-    </div>
+    <Layout>
+      <Routes>
+        <Route path="/" element={<Dashboard />} />
+        <Route path="/ai-career-coach" element={<AICareerCoach />} />
+        <Route path="/resume-builder" element={<ResumeBuilder />} />
+        <Route path="/interview-coach" element={<InterviewCoach />} />
+        <Route path="/job-finder" element={<JobFinder />} />
+        <Route path="/career-passport" element={<CareerPassport />} />
+        <Route path="/business-mentor" element={<BusinessMentor />} />
+        <Route path="/settings" element={<Settings />} />
+      </Routes>
+    </Layout>
   );
 }
 

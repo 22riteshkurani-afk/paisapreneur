@@ -1,4 +1,5 @@
 import { createContext, useState, useCallback, useEffect } from "react";
+import { authApi } from "../services/apiService";
 
 export const AuthContext = createContext(null);
 
@@ -21,14 +22,10 @@ export function AuthProvider({ children }) {
           
           // Validate token by fetching user info
           try {
-            const response = await fetch("/api/auth/me", {
-              headers: {
-                Authorization: `Bearer ${storedToken}`,
-              },
-            });
+            const response = await authApi.me();
             
-            if (response.ok) {
-              const data = await response.json();
+            if (response.status === 200) {
+              const data = response.data;
               setUser(data.user);
               localStorage.setItem("user", JSON.stringify(data.user));
             } else {
@@ -64,20 +61,13 @@ export function AuthProvider({ children }) {
     setError(null);
     
     try {
-      const response = await fetch("/api/auth/google", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ token: googleToken }),
-      });
+      const response = await authApi.googleLogin(googleToken);
 
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || "Login failed");
+      if (response.status < 200 || response.status >= 300) {
+        throw new Error(response.data?.error || "Login failed");
       }
 
-      const data = await response.json();
+      const data = response.data;
       
       // Store tokens and user
       setToken(data.access_token);
@@ -104,14 +94,9 @@ export function AuthProvider({ children }) {
         throw new Error("No refresh token available");
       }
 
-      const response = await fetch("/api/auth/refresh", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${refreshTok}`,
-        },
-      });
+      const response = await authApi.refresh();
 
-      if (!response.ok) {
+      if (response.status < 200 || response.status >= 300) {
         // Refresh failed, logout user
         logout();
         throw new Error("Token refresh failed");
@@ -135,12 +120,7 @@ export function AuthProvider({ children }) {
   const logout = useCallback(async () => {
     try {
       if (token) {
-        await fetch("/api/auth/logout", {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        await authApi.logout();
       }
     } catch (err) {
       console.error("Logout error:", err);

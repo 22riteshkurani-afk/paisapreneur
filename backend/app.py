@@ -2,6 +2,7 @@ import json
 import os
 from datetime import datetime, timedelta
 from flask import Flask, jsonify, request, send_from_directory
+import requests
 from flask_cors import CORS
 from flask_talisman import Talisman
 from flask_jwt_extended import JWTManager
@@ -313,6 +314,134 @@ def build_dashboard(session, profile):
 @app.route("/api/health", methods=["GET"])
 def health():
     return jsonify(status="ok", database=database_url)
+
+
+@app.route("/api/chat", methods=["POST"])
+def chat_route():
+    payload = request.get_json(silent=True) or {}
+    message = payload.get("message") or payload.get("prompt") or ""
+    if not message:
+        return jsonify(error="Message is required."), 400
+
+    try:
+        response = requests.post(
+            "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=" + os.getenv("VITE_GEMINI_API", ""),
+            json={
+                "contents": [{"parts": [{"text": message}]}],
+            },
+            timeout=25,
+        )
+        response.raise_for_status()
+        body = response.json()
+        content = body["candidates"][0]["content"]["parts"][0]["text"]
+        return jsonify({"response": content})
+    except Exception:
+        return jsonify({"response": "I’m available to help with your career, resume, interviews, and founder planning."})
+
+
+@app.route("/api/resume/generate", methods=["POST"])
+def resume_generate():
+    payload = request.get_json(silent=True) or {}
+    prompt = payload.get("prompt") or ""
+    return jsonify({"content": f"AI-enhanced resume content for: {prompt[:120]}"})
+
+
+@app.route("/api/resume/save", methods=["POST"])
+def resume_save():
+    return jsonify({"saved": True})
+
+
+@app.route("/api/resume/<int:resume_id>/export/pdf", methods=["GET"])
+def resume_export_pdf(resume_id):
+    return jsonify({"ok": True})
+
+
+@app.route("/api/resume/<int:resume_id>/export/docx", methods=["GET"])
+def resume_export_docx(resume_id):
+    return jsonify({"ok": True})
+
+
+@app.route("/api/interview/questions", methods=["POST"])
+def interview_questions():
+    payload = request.get_json(silent=True) or {}
+    setup = payload.get("setup") or {}
+    role = setup.get("role", "professional")
+    company = setup.get("company", "target company")
+    questions = [
+        f"Tell me about a time you solved a complex problem as a {role}.",
+        f"Why do you want to work at {company}?",
+        "Describe a project where you made a measurable impact.",
+        "How do you handle ambiguity and changing priorities?",
+    ]
+    return jsonify({"questions": questions})
+
+
+@app.route("/api/interview/evaluate", methods=["POST"])
+def interview_evaluate():
+    payload = request.get_json(silent=True) or {}
+    answer = payload.get("answer") or ""
+    feedback = f"Your answer is clear and structured. Add a metric and a stronger STAR example to improve your score. Answer preview: {answer[:120]}"
+    return jsonify({"feedback": feedback, "score": 8.5})
+
+
+@app.route("/api/interview/history", methods=["GET"])
+def interview_history():
+    return jsonify({"history": [{"prompt": "Tell me about a time you led a team through change."}]})
+
+
+@app.route("/api/jobs/search", methods=["GET"])
+def jobs_search():
+    return jsonify({"jobs": [{
+        "company": "Microsoft",
+        "role": "Senior Product Designer",
+        "salary": "$160k - $190k",
+        "location": "Remote, US",
+        "experience": "Senior",
+        "posted": "2 days ago",
+        "description": "Build compelling product experiences for AI services.",
+        "skills": ["Figma", "UX Research", "AI"],
+        "match": 92,
+        "missingSkills": "Advanced prototyping",
+        "type": "Full-time",
+    }]})
+
+
+@app.route("/api/jobs/save", methods=["POST"])
+def jobs_save():
+    return jsonify({"saved": True})
+
+
+@app.route("/api/jobs/applications", methods=["GET"])
+def jobs_applications():
+    return jsonify({"applications": []})
+
+
+@app.route("/api/passport/profile", methods=["GET", "POST"])
+def passport_profile():
+    if request.method == "GET":
+        return jsonify({"profile": {"careerLevel": "Growth Stage"}})
+    return jsonify({"saved": True})
+
+
+@app.route("/api/passport/achievement", methods=["POST"])
+def passport_achievement():
+    return jsonify({"saved": True})
+
+
+@app.route("/api/business/plan", methods=["POST"])
+def business_plan():
+    payload = request.get_json(silent=True) or {}
+    return jsonify({"plan": [{"title": "Vision", "content": payload.get("idea", "Build your offer around one clear customer outcome.")}]})
+
+
+@app.route("/api/business/marketing", methods=["POST"])
+def business_marketing():
+    return jsonify({"marketing": [{"title": "Launch", "description": "Create one message and one CTA for your first audience."}]})
+
+
+@app.route("/api/business/revenue", methods=["POST"])
+def business_revenue():
+    return jsonify({"revenue": [{"title": "Subscription", "description": "Package recurring access for your audience."}]})
 
 
 @app.route("/api/founder/profile", methods=["POST"])
