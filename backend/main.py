@@ -1,4 +1,6 @@
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+import ollama
 
 app = FastAPI()
 app.add_middleware(
@@ -35,7 +37,7 @@ def home():
 
 @app.get("/chat")
 def ai_chat(prompt: str):
-    response = chat(
+    response = ollama.chatma.chat( # type: ignore
         model="gemma4",
         messages=[
             {
