@@ -37,7 +37,7 @@ def home():
 
 @app.get("/chat")
 def ai_chat(prompt: str):
-    response = ollama.chatma.chat( # type: ignore
+    response = ollama.chat(
         model="gemma4",
         messages=[
             {
