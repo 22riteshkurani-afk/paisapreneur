@@ -1,7 +1,16 @@
-from fastapi import FastAPI
-from ollama import chat
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:3001",
+        "http://127.0.0.1:3001",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 SYSTEM_PROMPT = """
 You are Paisapreneur AI.
