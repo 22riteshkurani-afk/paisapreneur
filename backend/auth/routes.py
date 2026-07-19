@@ -9,6 +9,8 @@ from backend.auth import auth_bp
 from backend.auth.utils import (
     verify_google_token,
     create_or_update_user,
+    create_user_from_email,
+    authenticate_email_user,
     generate_tokens,
     get_current_user,
 )
@@ -58,6 +60,53 @@ def google_login():
         return jsonify({"error": str(e)}), 401
     except Exception as e:
         return jsonify({"error": "Authentication failed", "details": str(e)}), 500
+
+
+@auth_bp.route("/signup", methods=["POST"])
+def signup():
+    try:
+        data = request.get_json(silent=True) or {}
+        email = (data.get("email") or "").strip().lower()
+        password = data.get("password") or ""
+        full_name = (data.get("full_name") or "").strip()
+        if not email or not password:
+            return jsonify({"error": "Email and password are required"}), 400
+
+        user = create_user_from_email(email, password, full_name)
+        access_token, refresh_token = generate_tokens(user.id)
+        return jsonify({
+            "success": True,
+            "access_token": access_token,
+            "refresh_token": refresh_token,
+            "user": user.to_dict(),
+        }), 200
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
+    except Exception as exc:
+        return jsonify({"error": "Signup failed", "details": str(exc)}), 500
+
+
+@auth_bp.route("/login", methods=["POST"])
+def login():
+    try:
+        data = request.get_json(silent=True) or {}
+        email = (data.get("email") or "").strip().lower()
+        password = data.get("password") or ""
+        if not email or not password:
+            return jsonify({"error": "Email and password are required"}), 400
+
+        user = authenticate_email_user(email, password)
+        access_token, refresh_token = generate_tokens(user.id)
+        return jsonify({
+            "success": True,
+            "access_token": access_token,
+            "refresh_token": refresh_token,
+            "user": user.to_dict(),
+        }), 200
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
+    except Exception as exc:
+        return jsonify({"error": "Login failed", "details": str(exc)}), 500
 
 
 @auth_bp.route("/refresh", methods=["POST"])

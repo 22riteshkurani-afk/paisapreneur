@@ -14,6 +14,7 @@ from flask_jwt_extended import (
     get_jwt_identity,
     get_jwt,
 )
+from werkzeug.security import generate_password_hash, check_password_hash
 from google.auth.transport import requests
 from google.oauth2 import id_token
 from backend.models import User
@@ -92,6 +93,38 @@ def create_or_update_user(oauth_info):
             session.add(user)
             session.commit()
         
+        return user
+
+
+def create_user_from_email(email, password, full_name=None):
+    with session_scope() as session:
+        existing_user = session.query(User).filter_by(email=email).first()
+        if existing_user:
+            raise ValueError("User already exists")
+
+        user = User(
+            email=email,
+            full_name=full_name or email.split("@", 1)[0],
+            provider="email",
+            password_hash=generate_password_hash(password),
+            onboarding_completed=False,
+            subscription_tier="free",
+            last_login=datetime.utcnow(),
+        )
+        session.add(user)
+        session.commit()
+        return user
+
+
+def authenticate_email_user(email, password):
+    with session_scope() as session:
+        user = session.query(User).filter_by(email=email).first()
+        if not user or not user.password_hash:
+            raise ValueError("Invalid credentials")
+        if not check_password_hash(user.password_hash, password):
+            raise ValueError("Invalid credentials")
+        user.last_login = datetime.utcnow()
+        session.commit()
         return user
 
 

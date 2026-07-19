@@ -14,6 +14,7 @@ class User(Base):
     avatar_url = Column(String(512), nullable=True)
     provider = Column(String(64), default="google")  # "google", "email", etc.
     provider_id = Column(String(256), nullable=True, unique=True)
+    password_hash = Column(String(512), nullable=True)
     onboarding_completed = Column(Boolean, default=False)
     subscription_tier = Column(String(64), default="free")  # free, pro, enterprise
     last_login = Column(DateTime, nullable=True)
@@ -27,6 +28,7 @@ class User(Base):
             "full_name": self.full_name,
             "avatar_url": self.avatar_url,
             "provider": self.provider,
+            "provider_id": self.provider_id,
             "onboarding_completed": self.onboarding_completed,
             "subscription_tier": self.subscription_tier,
             "last_login": self.last_login.isoformat() if self.last_login else None,
@@ -172,4 +174,128 @@ class BusinessIdea(Base):
             "target_audience": self.target_audience,
             "problem_solved": self.problem_solved,
             "solution": self.solution,
+        }
+
+
+class Resume(Base):
+    __tablename__ = "resumes"
+
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, nullable=False, index=True)
+    user_email = Column(String(256), nullable=False, index=True)
+    title = Column(String(256), nullable=True)
+    content = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "user_id": self.user_id,
+            "user_email": self.user_email,
+            "title": self.title,
+            "content": json.loads(self.content or "{}"),
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
+        }
+
+
+class InterviewSession(Base):
+    __tablename__ = "interview_sessions"
+
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, nullable=False, index=True)
+    user_email = Column(String(256), nullable=False, index=True)
+    session_data = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "user_id": self.user_id,
+            "user_email": self.user_email,
+            "session_data": json.loads(self.session_data or "{}"),
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
+        }
+
+
+class SavedJob(Base):
+    __tablename__ = "saved_jobs"
+
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, nullable=False, index=True)
+    user_email = Column(String(256), nullable=False, index=True)
+    job_data = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "user_id": self.user_id,
+            "user_email": self.user_email,
+            "job_data": json.loads(self.job_data or "{}"),
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+        }
+
+
+class CareerPassport(Base):
+    __tablename__ = "career_passports"
+
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, nullable=False, index=True)
+    user_email = Column(String(256), nullable=False, index=True)
+    profile_data = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "user_id": self.user_id,
+            "user_email": self.user_email,
+            "profile_data": json.loads(self.profile_data or "{}"),
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
+        }
+
+
+class BusinessPlanEntry(Base):
+    __tablename__ = "business_plans"
+
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, nullable=False, index=True)
+    user_email = Column(String(256), nullable=False, index=True)
+    plan_data = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "user_id": self.user_id,
+            "user_email": self.user_email,
+            "plan_data": json.loads(self.plan_data or "{}"),
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
+        }
+
+
+class ChatMessage(Base):
+    __tablename__ = "chat_messages"
+
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, nullable=False, index=True)
+    user_email = Column(String(256), nullable=False, index=True)
+    message_data = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "user_id": self.user_id,
+            "user_email": self.user_email,
+            "message_data": json.loads(self.message_data or "{}"),
+            "created_at": self.created_at.isoformat() if self.created_at else None,
         }

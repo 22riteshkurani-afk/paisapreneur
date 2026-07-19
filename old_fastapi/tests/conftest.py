@@ -5,7 +5,7 @@ import json
 from unittest.mock import MagicMock, patch
 from fastapi.testclient import TestClient
 
-from main import app, _cache, _rate_limits
+from main import app
 
 
 @pytest.fixture
@@ -16,12 +16,8 @@ def client():
 
 @pytest.fixture(autouse=True)
 def clear_state():
-    """Clear cache and rate limits between tests."""
-    _cache.clear()
-    _rate_limits.clear()
+    """Clear any state between tests."""
     yield
-    _cache.clear()
-    _rate_limits.clear()
 
 
 MOCK_BLUEPRINT_RESPONSE = {

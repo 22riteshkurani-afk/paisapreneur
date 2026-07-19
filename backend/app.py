@@ -9,13 +9,20 @@ from flask_jwt_extended import JWTManager
 from backend.database import init_db, session_scope
 from backend.models import (
     BusinessIdea,
+    BusinessPlanEntry,
+    CareerPassport,
+    ChatMessage,
     DailyTask,
     FounderProfile,
+    InterviewSession,
     JournalEntry,
     Milestone,
+    Resume,
+    SavedJob,
     Venture,
 )
 from backend.auth import auth_bp
+from backend.services.production import RATE_LIMITERS, gemini_service, sanitize_text
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -42,7 +49,12 @@ CORS(app, resources={
 })
 
 # Talisman - HTTPS and security headers
-Talisman(app)
+# Disable forced HTTPS for local development and test clients while preserving the
+# security headers in production environments.
+if os.getenv("FLASK_ENV") == "production":
+    Talisman(app)
+else:
+    Talisman(app, force_https=False)
 
 # ============================================================================
 # JWT CONFIGURATION
@@ -323,17 +335,16 @@ def chat_route():
     if not message:
         return jsonify(error="Message is required."), 400
 
+    client_key = request.headers.get("X-Client-Id") or request.remote_addr or "default"
+    if not RATE_LIMITERS["ai"].allow(client_key):
+        return jsonify(error="Rate limit exceeded."), 429
+
+    cleaned_message = sanitize_text(message)
+    if not cleaned_message:
+        return jsonify(error="Message is required."), 400
+
     try:
-        response = requests.post(
-            "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=" + os.getenv("VITE_GEMINI_API", ""),
-            json={
-                "contents": [{"parts": [{"text": message}]}],
-            },
-            timeout=25,
-        )
-        response.raise_for_status()
-        body = response.json()
-        content = body["candidates"][0]["content"]["parts"][0]["text"]
+        content = gemini_service.generate(cleaned_message)
         return jsonify({"response": content})
     except Exception:
         return jsonify({"response": "I’m available to help with your career, resume, interviews, and founder planning."})
@@ -348,7 +359,35 @@ def resume_generate():
 
 @app.route("/api/resume/save", methods=["POST"])
 def resume_save():
-    return jsonify({"saved": True})
+    payload = request.get_json(silent=True) or {}
+    user_id = payload.get("user_id")
+    user_email = payload.get("user_email") or payload.get("email") or ""
+    content = payload.get("content") or {}
+    title = payload.get("title") or "Resume"
+    if not user_id and not user_email:
+        return jsonify(error="User identity is required."), 400
+
+    with session_scope() as session:
+        entry = Resume(
+            user_id=int(user_id) if str(user_id).isdigit() else 0,
+            user_email=user_email,
+            title=title,
+            content=json.dumps(content),
+        )
+        session.add(entry)
+        session.flush()
+        return jsonify({"saved": True, "resume": entry.to_dict()})
+
+
+@app.route("/api/resume/list", methods=["GET"])
+def resume_list():
+    user_email = request.args.get("email", "")
+    if not user_email:
+        return jsonify(error="Email is required."), 400
+
+    with session_scope() as session:
+        rows = session.query(Resume).filter_by(user_email=user_email).order_by(Resume.id.desc()).all()
+        return jsonify({"resumes": [row.to_dict() for row in rows]})
 
 
 @app.route("/api/resume/<int:resume_id>/export/pdf", methods=["GET"])
@@ -386,7 +425,33 @@ def interview_evaluate():
 
 @app.route("/api/interview/history", methods=["GET"])
 def interview_history():
-    return jsonify({"history": [{"prompt": "Tell me about a time you led a team through change."}]})
+    user_email = request.args.get("email", "")
+    if not user_email:
+        return jsonify(error="Email is required."), 400
+
+    with session_scope() as session:
+        rows = session.query(InterviewSession).filter_by(user_email=user_email).order_by(InterviewSession.id.desc()).all()
+        return jsonify({"history": [row.to_dict() for row in rows]})
+
+
+@app.route("/api/interview/save", methods=["POST"])
+def interview_save():
+    payload = request.get_json(silent=True) or {}
+    user_id = payload.get("user_id")
+    user_email = payload.get("user_email") or payload.get("email") or ""
+    session_data = payload.get("session_data") or {}
+    if not user_email:
+        return jsonify(error="Email is required."), 400
+
+    with session_scope() as session:
+        row = InterviewSession(
+            user_id=int(user_id) if str(user_id).isdigit() else 0,
+            user_email=user_email,
+            session_data=json.dumps(session_data),
+        )
+        session.add(row)
+        session.flush()
+        return jsonify({"saved": True, "session": row.to_dict()})
 
 
 @app.route("/api/jobs/search", methods=["GET"])
@@ -408,19 +473,62 @@ def jobs_search():
 
 @app.route("/api/jobs/save", methods=["POST"])
 def jobs_save():
-    return jsonify({"saved": True})
+    payload = request.get_json(silent=True) or {}
+    user_id = payload.get("user_id")
+    user_email = payload.get("user_email") or payload.get("email") or ""
+    job_data = payload.get("job_data") or payload.get("job") or {}
+    if not user_email:
+        return jsonify(error="Email is required."), 400
+
+    with session_scope() as session:
+        row = SavedJob(
+            user_id=int(user_id) if str(user_id).isdigit() else 0,
+            user_email=user_email,
+            job_data=json.dumps(job_data),
+        )
+        session.add(row)
+        session.flush()
+        return jsonify({"saved": True, "job": row.to_dict()})
 
 
 @app.route("/api/jobs/applications", methods=["GET"])
 def jobs_applications():
-    return jsonify({"applications": []})
+    user_email = request.args.get("email", "")
+    if not user_email:
+        return jsonify(error="Email is required."), 400
+
+    with session_scope() as session:
+        rows = session.query(SavedJob).filter_by(user_email=user_email).order_by(SavedJob.id.desc()).all()
+        return jsonify({"applications": [row.to_dict() for row in rows]})
 
 
 @app.route("/api/passport/profile", methods=["GET", "POST"])
 def passport_profile():
     if request.method == "GET":
-        return jsonify({"profile": {"careerLevel": "Growth Stage"}})
-    return jsonify({"saved": True})
+        user_email = request.args.get("email", "")
+        if not user_email:
+            return jsonify(error="Email is required."), 400
+        with session_scope() as session:
+            row = session.query(CareerPassport).filter_by(user_email=user_email).order_by(CareerPassport.id.desc()).first()
+            if not row:
+                return jsonify({"profile": {"careerLevel": "Growth Stage"}})
+            return jsonify({"profile": row.to_dict()})
+
+    payload = request.get_json(silent=True) or {}
+    user_id = payload.get("user_id")
+    user_email = payload.get("user_email") or payload.get("email") or ""
+    profile_data = payload.get("profile") or payload.get("profile_data") or {}
+    if not user_email:
+        return jsonify(error="Email is required."), 400
+
+    with session_scope() as session:
+        existing = session.query(CareerPassport).filter_by(user_email=user_email).order_by(CareerPassport.id.desc()).first()
+        row = existing or CareerPassport(user_id=int(user_id) if str(user_id).isdigit() else 0, user_email=user_email)
+        row.profile_data = json.dumps(profile_data)
+        if not existing:
+            session.add(row)
+        session.flush()
+        return jsonify({"saved": True, "profile": row.to_dict()})
 
 
 @app.route("/api/passport/achievement", methods=["POST"])
@@ -431,7 +539,21 @@ def passport_achievement():
 @app.route("/api/business/plan", methods=["POST"])
 def business_plan():
     payload = request.get_json(silent=True) or {}
-    return jsonify({"plan": [{"title": "Vision", "content": payload.get("idea", "Build your offer around one clear customer outcome.")}]})
+    user_id = payload.get("user_id")
+    user_email = payload.get("user_email") or payload.get("email") or ""
+    plan_data = payload.get("plan") or payload.get("plan_data") or {"idea": payload.get("idea", "Build your offer around one clear customer outcome.")}
+    if not user_email:
+        return jsonify(error="Email is required."), 400
+
+    with session_scope() as session:
+        row = BusinessPlanEntry(
+            user_id=int(user_id) if str(user_id).isdigit() else 0,
+            user_email=user_email,
+            plan_data=json.dumps(plan_data),
+        )
+        session.add(row)
+        session.flush()
+        return jsonify({"plan": row.to_dict()})
 
 
 @app.route("/api/business/marketing", methods=["POST"])
@@ -658,6 +780,37 @@ def business_idea():
 @app.route("/api/app-info", methods=["GET"])
 def app_info():
     return jsonify(name="Paisapreneur", stack="React + Tailwind + Flask", database=database_url)
+
+
+@app.route("/api/chat/history", methods=["GET"])
+def chat_history():
+    user_email = request.args.get("email", "")
+    if not user_email:
+        return jsonify(error="Email is required."), 400
+
+    with session_scope() as session:
+        rows = session.query(ChatMessage).filter_by(user_email=user_email).order_by(ChatMessage.id.desc()).all()
+        return jsonify({"messages": [row.to_dict() for row in rows]})
+
+
+@app.route("/api/chat/save", methods=["POST"])
+def chat_save():
+    payload = request.get_json(silent=True) or {}
+    user_id = payload.get("user_id")
+    user_email = payload.get("user_email") or payload.get("email") or ""
+    message_data = payload.get("message_data") or payload.get("message") or {}
+    if not user_email:
+        return jsonify(error="Email is required."), 400
+
+    with session_scope() as session:
+        row = ChatMessage(
+            user_id=int(user_id) if str(user_id).isdigit() else 0,
+            user_email=user_email,
+            message_data=json.dumps(message_data),
+        )
+        session.add(row)
+        session.flush()
+        return jsonify({"saved": True, "message": row.to_dict()})
 
 
 @app.route("/", defaults={"path": ""})
