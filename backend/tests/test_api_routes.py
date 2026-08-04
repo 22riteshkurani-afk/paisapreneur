@@ -1,10 +1,23 @@
 import os
+import subprocess
 import sys
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 
 from backend.app import app
 from backend.services.production import RATE_LIMITERS
+
+
+def test_app_imports_when_started_from_backend_directory():
+    backend_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+    proc = subprocess.run(
+        [sys.executable, "-c", "import app"],
+        cwd=backend_dir,
+        capture_output=True,
+        text=True,
+    )
+
+    assert proc.returncode == 0, proc.stderr.strip()
 
 
 def test_chat_endpoint_returns_payload():

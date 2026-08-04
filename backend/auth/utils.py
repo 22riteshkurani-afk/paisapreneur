@@ -14,10 +14,10 @@ from flask_jwt_extended import (
     get_jwt_identity,
     get_jwt,
 )
-from werkzeug.security import generate_password_hash, check_password_hash
 from google.auth.transport import requests
 from google.oauth2 import id_token
-from backend.models import User
+from werkzeug.security import generate_password_hash, check_password_hash
+from backend.models import User, UserModuleData
 from backend.database import session_scope
 
 
@@ -68,18 +68,16 @@ def create_or_update_user(oauth_info):
         User object
     """
     with session_scope() as session:
-        # Check if user exists by email or provider_id
         user = session.query(User).filter_by(email=oauth_info["email"]).first()
-        
+
         if user:
-            # Update existing user
             user.full_name = oauth_info["full_name"]
             user.avatar_url = oauth_info["avatar_url"]
+            user.provider = "google"
             user.provider_id = oauth_info["provider_id"]
             user.last_login = datetime.utcnow()
             session.commit()
         else:
-            # Create new user
             user = User(
                 email=oauth_info["email"],
                 full_name=oauth_info["full_name"],
@@ -92,19 +90,29 @@ def create_or_update_user(oauth_info):
             )
             session.add(user)
             session.commit()
-        
+
         return user
 
 
-def create_user_from_email(email, password, full_name=None):
+def create_email_user(email: str, password: str, full_name: str | None = None):
+    normalized_email = (email or "").strip().lower()
+    if not normalized_email or not password:
+        raise ValueError("Email and password are required")
+
     with session_scope() as session:
-        existing_user = session.query(User).filter_by(email=email).first()
-        if existing_user:
-            raise ValueError("User already exists")
+        existing = session.query(User).filter_by(email=normalized_email).first()
+        if existing:
+            if existing.provider == "email":
+                raise ValueError("User already exists")
+            existing.provider = "email"
+            existing.full_name = full_name or existing.full_name
+            existing.password_hash = generate_password_hash(password)
+            existing.last_login = datetime.utcnow()
+            return existing
 
         user = User(
-            email=email,
-            full_name=full_name or email.split("@", 1)[0],
+            email=normalized_email,
+            full_name=full_name,
             provider="email",
             password_hash=generate_password_hash(password),
             onboarding_completed=False,
@@ -116,16 +124,48 @@ def create_user_from_email(email, password, full_name=None):
         return user
 
 
-def authenticate_email_user(email, password):
+def authenticate_email_user(email: str, password: str):
+    normalized_email = (email or "").strip().lower()
     with session_scope() as session:
-        user = session.query(User).filter_by(email=email).first()
+        user = session.query(User).filter_by(email=normalized_email).first()
         if not user or not user.password_hash:
-            raise ValueError("Invalid credentials")
-        if not check_password_hash(user.password_hash, password):
-            raise ValueError("Invalid credentials")
-        user.last_login = datetime.utcnow()
+            return None
+        if check_password_hash(user.password_hash, password):
+            user.last_login = datetime.utcnow()
+            session.commit()
+            return user
+        return None
+
+
+def save_user_module_data(user_id: int, module_name: str, payload: dict, record_key: str | None = None):
+    safe_payload = json.dumps(payload or {}, default=str)
+    with session_scope() as session:
+        existing = None
+        if record_key:
+            existing = session.query(UserModuleData).filter_by(user_id=user_id, module_name=module_name, record_key=record_key).first()
+        if existing:
+            existing.payload = safe_payload
+            existing.updated_at = datetime.utcnow()
+            return existing.to_dict()
+
+        entry = UserModuleData(
+            user_id=user_id,
+            module_name=module_name,
+            record_key=record_key,
+            payload=safe_payload,
+        )
+        session.add(entry)
         session.commit()
-        return user
+        return entry.to_dict()
+
+
+def get_user_module_data(user_id: int, module_name: str, record_key: str | None = None):
+    with session_scope() as session:
+        query = session.query(UserModuleData).filter_by(user_id=user_id, module_name=module_name)
+        if record_key:
+            query = query.filter_by(record_key=record_key)
+        items = query.order_by(UserModuleData.updated_at.desc()).all()
+        return [item.to_dict() for item in items]
 
 
 def generate_tokens(user_id):

@@ -1,36 +1,52 @@
 import json
 import os
+import sys
 from datetime import datetime, timedelta
+from pathlib import Path
+
+BASE_DIR = Path(__file__).resolve().parent
+REPO_ROOT = BASE_DIR.parent
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
+from dotenv import load_dotenv
 from flask import Flask, jsonify, request, send_from_directory
 import requests
 from flask_cors import CORS
 from flask_talisman import Talisman
-from flask_jwt_extended import JWTManager
+from flask_jwt_extended import JWTManager, jwt_required, get_jwt_identity
 from backend.database import init_db, session_scope
 from backend.models import (
     BusinessIdea,
-    BusinessPlanEntry,
-    CareerPassport,
-    ChatMessage,
     DailyTask,
     FounderProfile,
-    InterviewSession,
     JournalEntry,
     Milestone,
-    Resume,
-    SavedJob,
     Venture,
 )
 from backend.auth import auth_bp
+from backend.auth.utils import save_user_module_data, get_user_module_data
 from backend.services.production import RATE_LIMITERS, gemini_service, sanitize_text
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+for env_path in (BASE_DIR / ".env", REPO_ROOT / ".env"):
+    if env_path.exists():
+        load_dotenv(env_path)
 
-FRONTEND_DIST = os.path.join(
-    os.getcwd(),
-    "frontend",
-    "dist"
-)
+
+def resolve_database_url(database_url: str) -> str:
+    if not database_url.startswith("sqlite"):
+        return database_url
+
+    if database_url.startswith("sqlite://") and "/" in database_url[10:]:
+        relative_path = database_url.split("sqlite:///", 1)[-1]
+        if relative_path and not relative_path.startswith(("/", "C:/", "C:\\")):
+            resolved = (REPO_ROOT / relative_path).resolve()
+            return f"sqlite:///{resolved.as_posix()}"
+
+    return database_url
+
+
+FRONTEND_DIST = os.path.join(REPO_ROOT, "frontend", "dist")
 
 app = Flask(__name__, static_folder=FRONTEND_DIST, static_url_path="")
 
@@ -95,7 +111,7 @@ app.register_blueprint(auth_bp)
 # ============================================================================
 # DATABASE INITIALIZATION
 # ============================================================================
-database_url = os.getenv("DATABASE_URL", "sqlite:///backend/paisapreneur.db")
+database_url = resolve_database_url(os.getenv("DATABASE_URL", "sqlite:///backend/paisapreneur.db"))
 init_db(database_url)
 
 
@@ -351,43 +367,26 @@ def chat_route():
 
 
 @app.route("/api/resume/generate", methods=["POST"])
+@jwt_required()
 def resume_generate():
     payload = request.get_json(silent=True) or {}
     prompt = payload.get("prompt") or ""
+    user_id = get_jwt_identity()
+    data = payload.get("data") or {}
+    if user_id:
+        save_user_module_data(user_id, "resume", {"prompt": prompt, "data": data}, record_key="latest")
     return jsonify({"content": f"AI-enhanced resume content for: {prompt[:120]}"})
 
 
 @app.route("/api/resume/save", methods=["POST"])
+@jwt_required()
 def resume_save():
     payload = request.get_json(silent=True) or {}
-    user_id = payload.get("user_id")
-    user_email = payload.get("user_email") or payload.get("email") or ""
-    content = payload.get("content") or {}
-    title = payload.get("title") or "Resume"
-    if not user_id and not user_email:
-        return jsonify(error="User identity is required."), 400
-
-    with session_scope() as session:
-        entry = Resume(
-            user_id=int(user_id) if str(user_id).isdigit() else 0,
-            user_email=user_email,
-            title=title,
-            content=json.dumps(content),
-        )
-        session.add(entry)
-        session.flush()
-        return jsonify({"saved": True, "resume": entry.to_dict()})
-
-
-@app.route("/api/resume/list", methods=["GET"])
-def resume_list():
-    user_email = request.args.get("email", "")
-    if not user_email:
-        return jsonify(error="Email is required."), 400
-
-    with session_scope() as session:
-        rows = session.query(Resume).filter_by(user_email=user_email).order_by(Resume.id.desc()).all()
-        return jsonify({"resumes": [row.to_dict() for row in rows]})
+    user_id = get_jwt_identity()
+    if user_id:
+        result = save_user_module_data(user_id, "resume", payload, record_key="draft")
+        return jsonify({"saved": True, "record": result})
+    return jsonify({"saved": True})
 
 
 @app.route("/api/resume/<int:resume_id>/export/pdf", methods=["GET"])
@@ -401,6 +400,7 @@ def resume_export_docx(resume_id):
 
 
 @app.route("/api/interview/questions", methods=["POST"])
+@jwt_required()
 def interview_questions():
     payload = request.get_json(silent=True) or {}
     setup = payload.get("setup") or {}
@@ -412,50 +412,41 @@ def interview_questions():
         "Describe a project where you made a measurable impact.",
         "How do you handle ambiguity and changing priorities?",
     ]
+    user_id = get_jwt_identity()
+    if user_id:
+        save_user_module_data(user_id, "interview", {"setup": setup, "questions": questions}, record_key="latest")
     return jsonify({"questions": questions})
 
 
 @app.route("/api/interview/evaluate", methods=["POST"])
+@jwt_required()
 def interview_evaluate():
     payload = request.get_json(silent=True) or {}
     answer = payload.get("answer") or ""
     feedback = f"Your answer is clear and structured. Add a metric and a stronger STAR example to improve your score. Answer preview: {answer[:120]}"
+    user_id = get_jwt_identity()
+    if user_id:
+        save_user_module_data(user_id, "interview", {"answer": answer, "feedback": feedback}, record_key="evaluation")
     return jsonify({"feedback": feedback, "score": 8.5})
 
 
 @app.route("/api/interview/history", methods=["GET"])
+@jwt_required()
 def interview_history():
-    user_email = request.args.get("email", "")
-    if not user_email:
-        return jsonify(error="Email is required."), 400
-
-    with session_scope() as session:
-        rows = session.query(InterviewSession).filter_by(user_email=user_email).order_by(InterviewSession.id.desc()).all()
-        return jsonify({"history": [row.to_dict() for row in rows]})
-
-
-@app.route("/api/interview/save", methods=["POST"])
-def interview_save():
-    payload = request.get_json(silent=True) or {}
-    user_id = payload.get("user_id")
-    user_email = payload.get("user_email") or payload.get("email") or ""
-    session_data = payload.get("session_data") or {}
-    if not user_email:
-        return jsonify(error="Email is required."), 400
-
-    with session_scope() as session:
-        row = InterviewSession(
-            user_id=int(user_id) if str(user_id).isdigit() else 0,
-            user_email=user_email,
-            session_data=json.dumps(session_data),
-        )
-        session.add(row)
-        session.flush()
-        return jsonify({"saved": True, "session": row.to_dict()})
+    user_id = get_jwt_identity()
+    records = get_user_module_data(user_id, "interview") if user_id else []
+    history = [{"prompt": item["payload"].get("questions", ["Tell me about a time you led a team through change."])[0] if isinstance(item.get("payload"), dict) else "Tell me about a time you led a team through change."} for item in records]
+    if not history:
+        history = [{"prompt": "Tell me about a time you led a team through change."}]
+    return jsonify({"history": history})
 
 
 @app.route("/api/jobs/search", methods=["GET"])
+@jwt_required()
 def jobs_search():
+    user_id = get_jwt_identity()
+    if user_id:
+        save_user_module_data(user_id, "job_search", {"query": request.args.to_dict()}, record_key="latest")
     return jsonify({"jobs": [{
         "company": "Microsoft",
         "role": "Senior Product Designer",
@@ -472,97 +463,75 @@ def jobs_search():
 
 
 @app.route("/api/jobs/save", methods=["POST"])
+@jwt_required()
 def jobs_save():
     payload = request.get_json(silent=True) or {}
-    user_id = payload.get("user_id")
-    user_email = payload.get("user_email") or payload.get("email") or ""
-    job_data = payload.get("job_data") or payload.get("job") or {}
-    if not user_email:
-        return jsonify(error="Email is required."), 400
-
-    with session_scope() as session:
-        row = SavedJob(
-            user_id=int(user_id) if str(user_id).isdigit() else 0,
-            user_email=user_email,
-            job_data=json.dumps(job_data),
-        )
-        session.add(row)
-        session.flush()
-        return jsonify({"saved": True, "job": row.to_dict()})
+    user_id = get_jwt_identity()
+    if user_id:
+        save_user_module_data(user_id, "job_saved", payload, record_key=payload.get("company") or "saved")
+    return jsonify({"saved": True})
 
 
 @app.route("/api/jobs/applications", methods=["GET"])
+@jwt_required()
 def jobs_applications():
-    user_email = request.args.get("email", "")
-    if not user_email:
-        return jsonify(error="Email is required."), 400
-
-    with session_scope() as session:
-        rows = session.query(SavedJob).filter_by(user_email=user_email).order_by(SavedJob.id.desc()).all()
-        return jsonify({"applications": [row.to_dict() for row in rows]})
+    user_id = get_jwt_identity()
+    records = get_user_module_data(user_id, "job_saved") if user_id else []
+    return jsonify({"applications": records})
 
 
 @app.route("/api/passport/profile", methods=["GET", "POST"])
+@jwt_required()
 def passport_profile():
+    user_id = get_jwt_identity()
     if request.method == "GET":
-        user_email = request.args.get("email", "")
-        if not user_email:
-            return jsonify(error="Email is required."), 400
-        with session_scope() as session:
-            row = session.query(CareerPassport).filter_by(user_email=user_email).order_by(CareerPassport.id.desc()).first()
-            if not row:
-                return jsonify({"profile": {"careerLevel": "Growth Stage"}})
-            return jsonify({"profile": row.to_dict()})
+        records = get_user_module_data(user_id, "passport_profile") if user_id else []
+        profile = records[0]["payload"] if records else {"careerLevel": "Growth Stage"}
+        return jsonify({"profile": profile})
 
     payload = request.get_json(silent=True) or {}
-    user_id = payload.get("user_id")
-    user_email = payload.get("user_email") or payload.get("email") or ""
-    profile_data = payload.get("profile") or payload.get("profile_data") or {}
-    if not user_email:
-        return jsonify(error="Email is required."), 400
-
-    with session_scope() as session:
-        existing = session.query(CareerPassport).filter_by(user_email=user_email).order_by(CareerPassport.id.desc()).first()
-        row = existing or CareerPassport(user_id=int(user_id) if str(user_id).isdigit() else 0, user_email=user_email)
-        row.profile_data = json.dumps(profile_data)
-        if not existing:
-            session.add(row)
-        session.flush()
-        return jsonify({"saved": True, "profile": row.to_dict()})
+    if user_id:
+        save_user_module_data(user_id, "passport_profile", payload, record_key="profile")
+    return jsonify({"saved": True, "profile": payload})
 
 
 @app.route("/api/passport/achievement", methods=["POST"])
+@jwt_required()
 def passport_achievement():
+    payload = request.get_json(silent=True) or {}
+    user_id = get_jwt_identity()
+    if user_id:
+        save_user_module_data(user_id, "passport_achievement", payload, record_key=payload.get("title") or "achievement")
     return jsonify({"saved": True})
 
 
 @app.route("/api/business/plan", methods=["POST"])
+@jwt_required()
 def business_plan():
     payload = request.get_json(silent=True) or {}
-    user_id = payload.get("user_id")
-    user_email = payload.get("user_email") or payload.get("email") or ""
-    plan_data = payload.get("plan") or payload.get("plan_data") or {"idea": payload.get("idea", "Build your offer around one clear customer outcome.")}
-    if not user_email:
-        return jsonify(error="Email is required."), 400
-
-    with session_scope() as session:
-        row = BusinessPlanEntry(
-            user_id=int(user_id) if str(user_id).isdigit() else 0,
-            user_email=user_email,
-            plan_data=json.dumps(plan_data),
-        )
-        session.add(row)
-        session.flush()
-        return jsonify({"plan": row.to_dict()})
+    user_id = get_jwt_identity()
+    if user_id:
+        save_user_module_data(user_id, "business_plan", payload, record_key="plan")
+    return jsonify({"plan": [{"title": "Vision", "content": payload.get("idea", "Build your offer around one clear customer outcome.")}]})
 
 
 @app.route("/api/business/marketing", methods=["POST"])
+@jwt_required()
 def business_marketing():
+    payload = request.get_json(silent=True) or {}
+    user_id = get_jwt_identity()
+    if user_id:
+        save_user_module_data(user_id, "business_marketing", payload, record_key="marketing")
     return jsonify({"marketing": [{"title": "Launch", "description": "Create one message and one CTA for your first audience."}]})
 
 
 @app.route("/api/business/revenue", methods=["POST"])
+@jwt_required()
 def business_revenue():
+    payload = request.get_json(silent=True) or {}
+    user_id = get_jwt_identity()
+    if user_id:
+        save_user_module_data(user_id, "business_revenue", payload, record_key="revenue")
     return jsonify({"revenue": [{"title": "Subscription", "description": "Package recurring access for your audience."}]})
 
 
@@ -780,37 +749,6 @@ def business_idea():
 @app.route("/api/app-info", methods=["GET"])
 def app_info():
     return jsonify(name="Paisapreneur", stack="React + Tailwind + Flask", database=database_url)
-
-
-@app.route("/api/chat/history", methods=["GET"])
-def chat_history():
-    user_email = request.args.get("email", "")
-    if not user_email:
-        return jsonify(error="Email is required."), 400
-
-    with session_scope() as session:
-        rows = session.query(ChatMessage).filter_by(user_email=user_email).order_by(ChatMessage.id.desc()).all()
-        return jsonify({"messages": [row.to_dict() for row in rows]})
-
-
-@app.route("/api/chat/save", methods=["POST"])
-def chat_save():
-    payload = request.get_json(silent=True) or {}
-    user_id = payload.get("user_id")
-    user_email = payload.get("user_email") or payload.get("email") or ""
-    message_data = payload.get("message_data") or payload.get("message") or {}
-    if not user_email:
-        return jsonify(error="Email is required."), 400
-
-    with session_scope() as session:
-        row = ChatMessage(
-            user_id=int(user_id) if str(user_id).isdigit() else 0,
-            user_email=user_email,
-            message_data=json.dumps(message_data),
-        )
-        session.add(row)
-        session.flush()
-        return jsonify({"saved": True, "message": row.to_dict()})
 
 
 @app.route("/", defaults={"path": ""})

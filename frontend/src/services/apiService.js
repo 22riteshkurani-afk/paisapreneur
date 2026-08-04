@@ -51,6 +51,8 @@ export const businessApi = {
 
 export const authApi = {
   googleLogin: (token) => api.post("/api/auth/google", { token }),
+  login: (payload) => api.post("/api/auth/login", payload),
+  register: (payload) => api.post("/api/auth/register", payload),
   me: () => api.get("/api/auth/me"),
   refresh: () => api.post("/api/auth/refresh"),
   logout: () => api.post("/api/auth/logout"),

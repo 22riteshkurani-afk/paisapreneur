@@ -86,6 +86,60 @@ export function AuthProvider({ children }) {
     }
   }, []);
 
+  // Email login
+  const loginWithEmail = useCallback(async (email, password) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await authApi.login({ email, password });
+      if (response.status < 200 || response.status >= 300) {
+        throw new Error(response.data?.error || "Login failed");
+      }
+
+      const { access_token, refresh_token, user } = response.data;
+      setToken(access_token);
+      setUser(user);
+      localStorage.setItem("access_token", access_token);
+      localStorage.setItem("refresh_token", refresh_token);
+      localStorage.setItem("user", JSON.stringify(user));
+      return user;
+    } catch (err) {
+      const errorMsg = err.response?.data?.error || err.message || "Login failed";
+      setError(errorMsg);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // Email registration
+  const registerWithEmail = useCallback(async (email, password, fullName) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await authApi.register({ email, password, full_name: fullName });
+      if (response.status < 200 || response.status >= 300) {
+        throw new Error(response.data?.error || "Registration failed");
+      }
+
+      const { access_token, refresh_token, user } = response.data;
+      setToken(access_token);
+      setUser(user);
+      localStorage.setItem("access_token", access_token);
+      localStorage.setItem("refresh_token", refresh_token);
+      localStorage.setItem("user", JSON.stringify(user));
+      return user;
+    } catch (err) {
+      const errorMsg = err.response?.data?.error || err.message || "Registration failed";
+      setError(errorMsg);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   // Refresh access token
   const refreshToken = useCallback(async () => {
     try {
@@ -97,24 +151,23 @@ export function AuthProvider({ children }) {
       const response = await authApi.refresh();
 
       if (response.status < 200 || response.status >= 300) {
-        // Refresh failed, logout user
         logout();
         throw new Error("Token refresh failed");
       }
 
-      const data = await response.json();
+      const data = response.data;
       setToken(data.access_token);
       setUser(data.user);
       localStorage.setItem("access_token", data.access_token);
       localStorage.setItem("user", JSON.stringify(data.user));
-      
+
       return data.access_token;
     } catch (err) {
       console.error("Token refresh error:", err);
       logout();
       throw err;
     }
-  }, []);
+  }, [logout]);
 
   // Logout
   const logout = useCallback(async () => {
@@ -139,6 +192,8 @@ export function AuthProvider({ children }) {
     loading,
     error,
     loginWithGoogle,
+    loginWithEmail,
+    registerWithEmail,
     refreshToken,
     logout,
     isAuthenticated: !!user && !!token,

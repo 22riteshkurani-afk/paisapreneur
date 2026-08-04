@@ -6,11 +6,20 @@ import re
 import time
 import json
 from datetime import datetime, timedelta
+from pathlib import Path
 from typing import Any, Dict, List
 
 import requests
+from dotenv import load_dotenv
 from flask import request
 from werkzeug.security import check_password_hash, generate_password_hash
+
+for env_path in (
+    Path(__file__).resolve().parent / ".env",
+    Path(__file__).resolve().parent.parent / ".env",
+):
+    if env_path.exists():
+        load_dotenv(env_path)
 
 logger = logging.getLogger("paisapreneur")
 logger.setLevel(logging.INFO)
