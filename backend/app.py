@@ -14,7 +14,7 @@ from flask import Flask, jsonify, request, send_from_directory
 import requests
 from flask_cors import CORS
 from flask_talisman import Talisman
-from flask_jwt_extended import JWTManager, jwt_required, get_jwt_identity
+from flask_jwt_extended import JWTManager, jwt_required, get_jwt_identity, decode_token
 from backend.database import init_db, session_scope
 from backend.models import (
     BusinessIdea,
@@ -22,6 +22,7 @@ from backend.models import (
     FounderProfile,
     JournalEntry,
     Milestone,
+    User,
     Venture,
 )
 from backend.auth import auth_bp
@@ -342,6 +343,46 @@ def build_dashboard(session, profile):
 @app.route("/api/health", methods=["GET"])
 def health():
     return jsonify(status="ok", database=database_url)
+
+
+@app.route("/api/profile", methods=["GET", "PUT"])
+def user_profile():
+    auth_header = request.headers.get("Authorization", "")
+    if not auth_header.startswith("Bearer "):
+        return jsonify({"error": "Unauthorized"}), 401
+
+    try:
+        token = auth_header.split(" ", 1)[1].strip()
+        user_id = decode_token(token)["sub"]
+    except Exception:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    with session_scope() as session:
+        user = session.query(User).filter_by(id=user_id).first()
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+
+        if request.method == "GET":
+            return jsonify({"success": True, "profile": user.to_dict()})
+
+        payload = request.get_json(silent=True) or {}
+        for field in [
+            "full_name",
+            "headline",
+            "location",
+            "bio",
+            "experience",
+            "website",
+            "linkedin_url",
+            "github_url",
+            "avatar_url",
+        ]:
+            if field in payload:
+                setattr(user, field, payload[field])
+
+        user.updated_at = datetime.utcnow()
+        session.commit()
+        return jsonify({"success": True, "profile": user.to_dict()})
 
 
 @app.route("/api/chat", methods=["POST"])

@@ -11,6 +11,13 @@ class User(Base):
     id = Column(Integer, primary_key=True)
     email = Column(String(256), unique=True, nullable=False, index=True)
     full_name = Column(String(256), nullable=True)
+    headline = Column(String(255), nullable=True)
+    location = Column(String(255), nullable=True)
+    bio = Column(Text, nullable=True)
+    experience = Column(String(128), nullable=True)
+    website = Column(String(512), nullable=True)
+    linkedin_url = Column(String(512), nullable=True)
+    github_url = Column(String(512), nullable=True)
     avatar_url = Column(String(512), nullable=True)
     provider = Column(String(64), default="google")  # "google", "email", etc.
     provider_id = Column(String(256), nullable=True, unique=True)
@@ -26,6 +33,13 @@ class User(Base):
             "id": self.id,
             "email": self.email,
             "full_name": self.full_name,
+            "headline": self.headline,
+            "location": self.location,
+            "bio": self.bio,
+            "experience": self.experience,
+            "website": self.website,
+            "linkedin_url": self.linkedin_url,
+            "github_url": self.github_url,
             "avatar_url": self.avatar_url,
             "provider": self.provider,
             "onboarding_completed": self.onboarding_completed,

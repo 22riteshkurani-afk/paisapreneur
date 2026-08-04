@@ -52,9 +52,10 @@ def test_chat_endpoint_rate_limited_after_many_requests():
 
 def test_user_profile_endpoint_round_trip():
     client = app.test_client()
+    unique_email = f"profile.user.{os.urandom(4).hex()}@example.com"
     response = client.post(
         "/api/auth/register",
-        json={"email": "profile.user@example.com", "password": "Password123!", "full_name": "Profile User"},
+        json={"email": unique_email, "password": "Password123!", "full_name": "Profile User"},
     )
 
     assert response.status_code == 201, response.get_data(as_text=True)
@@ -64,6 +65,7 @@ def test_user_profile_endpoint_round_trip():
         "/api/profile",
         headers={"Authorization": f"Bearer {token}"},
     )
+    print("profile_get body:", profile_get.get_data(as_text=True))
     assert profile_get.status_code == 200
 
     payload = {"full_name": "Updated Profile User", "headline": "Product Builder", "location": "Remote"}

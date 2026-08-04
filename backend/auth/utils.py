@@ -77,6 +77,8 @@ def create_or_update_user(oauth_info):
             user.provider_id = oauth_info["provider_id"]
             user.last_login = datetime.utcnow()
             session.commit()
+            session.refresh(user)
+            session.expunge(user)
         else:
             user = User(
                 email=oauth_info["email"],
@@ -90,6 +92,8 @@ def create_or_update_user(oauth_info):
             )
             session.add(user)
             session.commit()
+            session.refresh(user)
+            session.expunge(user)
 
         return user
 
@@ -121,6 +125,8 @@ def create_email_user(email: str, password: str, full_name: str | None = None):
         )
         session.add(user)
         session.commit()
+        session.refresh(user)
+        session.expunge(user)
         return user
 
 
@@ -133,6 +139,8 @@ def authenticate_email_user(email: str, password: str):
         if check_password_hash(user.password_hash, password):
             user.last_login = datetime.utcnow()
             session.commit()
+            session.refresh(user)
+            session.expunge(user)
             return user
         return None
 
