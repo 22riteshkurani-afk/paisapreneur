@@ -48,3 +48,31 @@ def test_chat_endpoint_rate_limited_after_many_requests():
 
     assert response is not None
     assert response.status_code == 429
+
+
+def test_user_profile_endpoint_round_trip():
+    client = app.test_client()
+    response = client.post(
+        "/api/auth/register",
+        json={"email": "profile.user@example.com", "password": "Password123!", "full_name": "Profile User"},
+    )
+
+    assert response.status_code == 201, response.get_data(as_text=True)
+    token = response.get_json()["access_token"]
+
+    profile_get = client.get(
+        "/api/profile",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert profile_get.status_code == 200
+
+    payload = {"full_name": "Updated Profile User", "headline": "Product Builder", "location": "Remote"}
+    profile_put = client.put(
+        "/api/profile",
+        json=payload,
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert profile_put.status_code == 200, profile_put.get_data(as_text=True)
+    body = profile_put.get_json()
+    assert body["profile"]["full_name"] == "Updated Profile User"
+    assert body["profile"]["headline"] == "Product Builder"
