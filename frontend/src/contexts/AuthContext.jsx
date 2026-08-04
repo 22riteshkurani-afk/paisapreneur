@@ -140,6 +140,23 @@ export function AuthProvider({ children }) {
     }
   }, []);
 
+  // Logout
+  const logout = useCallback(async () => {
+    try {
+      if (token) {
+        await authApi.logout();
+      }
+    } catch (err) {
+      console.error("Logout error:", err);
+    } finally {
+      setToken(null);
+      setUser(null);
+      localStorage.removeItem("access_token");
+      localStorage.removeItem("refresh_token");
+      localStorage.removeItem("user");
+    }
+  }, [token]);
+
   // Refresh access token
   const refreshToken = useCallback(async () => {
     try {
@@ -168,23 +185,6 @@ export function AuthProvider({ children }) {
       throw err;
     }
   }, [logout]);
-
-  // Logout
-  const logout = useCallback(async () => {
-    try {
-      if (token) {
-        await authApi.logout();
-      }
-    } catch (err) {
-      console.error("Logout error:", err);
-    } finally {
-      setToken(null);
-      setUser(null);
-      localStorage.removeItem("access_token");
-      localStorage.removeItem("refresh_token");
-      localStorage.removeItem("user");
-    }
-  }, [token]);
 
   const value = {
     user,
