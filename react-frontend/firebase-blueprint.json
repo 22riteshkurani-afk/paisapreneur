@@ -1,0 +1,139 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User profile for the AI Monetization OS.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string" },
+        "displayName": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "isPremium": { "type": "boolean" },
+        "generationsToday": { "type": "integer" },
+        "lastGenerationDate": { "type": "string" },
+        "incomeGoal": { "type": "number" },
+        "currentIncome": { "type": "number" },
+        "onboardingCompleted": { "type": "boolean" },
+        "currentWeek": { "type": "integer" }
+      },
+      "required": ["uid", "email", "isPremium", "generationsToday", "lastGenerationDate", "incomeGoal", "currentIncome", "onboardingCompleted", "currentWeek"]
+    },
+    "MonetizationPath": {
+      "title": "MonetizationPath",
+      "description": "Recommended monetization path based on skills.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "skills": { "type": "array", "items": { "type": "string" } },
+        "tools": { "type": "array", "items": { "type": "string" } },
+        "timeAvailable": { "type": "string" },
+        "recommendedService": { "type": "string" },
+        "timeline": { "type": "string" },
+        "suggestedPricing": { "type": "string" },
+        "launchPlan": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "phase": { "type": "string" },
+              "timeline": { "type": "string" },
+              "deliverables": { "type": "array", "items": { "type": "string" } }
+            }
+          }
+        },
+        "status": { "type": "string", "enum": ["draft", "active"] },
+        "createdAt": { "type": "integer" }
+      },
+      "required": ["userId", "skills", "tools", "timeAvailable", "recommendedService", "timeline", "suggestedPricing", "status", "createdAt"]
+    },
+    "BusinessOffer": {
+      "title": "BusinessOffer",
+      "description": "Structured service offer.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "niche": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "tiers": { "type": "array", "items": { "type": "object" } },
+        "locked": { "type": "boolean" },
+        "createdAt": { "type": "integer" }
+      },
+      "required": ["userId", "niche", "title", "description", "tiers", "locked", "createdAt"]
+    },
+    "CRMLead": {
+      "title": "CRMLead",
+      "description": "Lead in the sales pipeline.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "name": { "type": "string" },
+        "status": { "type": "string", "enum": ["Lead", "Conversation", "Call", "Deal"] },
+        "lastMessage": { "type": "string" },
+        "nextFollowUp": { "type": "string" },
+        "value": { "type": "number" },
+        "createdAt": { "type": "integer" }
+      },
+      "required": ["userId", "name", "status", "createdAt"]
+    },
+    "WeeklyReview": {
+      "title": "WeeklyReview",
+      "description": "Weekly performance review.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "week": { "type": "integer" },
+        "metrics": { "type": "object" },
+        "aiFeedback": { "type": "string" },
+        "nextWeekPlan": { "type": "string" },
+        "createdAt": { "type": "integer" }
+      },
+      "required": ["userId", "week", "metrics", "aiFeedback", "nextWeekPlan", "createdAt"]
+    },
+    "LandingPage": {
+      "title": "LandingPage",
+      "description": "Generated landing page copy.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "offerId": { "type": "string" },
+        "headline": { "type": "string" },
+        "subheadline": { "type": "string" },
+        "heroImagePrompt": { "type": "string" },
+        "benefits": { "type": "array", "items": { "type": "object" } },
+        "socialProofPlaceholders": { "type": "array", "items": { "type": "string" } },
+        "cta": { "type": "string" },
+        "faq": { "type": "array", "items": { "type": "object" } },
+        "createdAt": { "type": "integer" }
+      },
+      "required": ["userId", "offerId", "headline", "subheadline", "heroImagePrompt", "benefits", "socialProofPlaceholders", "cta", "faq", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "User profile data."
+    },
+    "/users/{userId}/paths/{pathId}": {
+      "schema": "MonetizationPath",
+      "description": "User's monetization paths."
+    },
+    "/users/{userId}/offers/{offerId}": {
+      "schema": "BusinessOffer",
+      "description": "User's service offers."
+    },
+    "/users/{userId}/leads/{leadId}": {
+      "schema": "CRMLead",
+      "description": "Sales pipeline leads."
+    },
+    "/users/{userId}/reviews/{reviewId}": {
+      "schema": "WeeklyReview",
+      "description": "Weekly performance reviews."
+    },
+    "/users/{userId}/landingPages/{pageId}": {
+      "schema": "LandingPage",
+      "description": "Generated landing page copy."
+    }
+  }
+}

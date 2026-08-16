@@ -1,0 +1,5 @@
+{
+  "name": "Paisapreneur AI",
+  "description": "A multi-agent AI SaaS platform for generating business ideas, execution plans, monetization strategies, and high-converting landing pages focused on the Indian market.",
+  "requestFramePermissions": ["microphone"]
+}

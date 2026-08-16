@@ -1,0 +1,79 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: users
+    // Document ID: {userId}
+    // Fields:
+    //   - uid: string
+    //   - email: string
+    //   - isPremium: bool
+    //   - generationsToday: int
+    //   - lastGenerationDate: string
+    //   - incomeGoal: number
+    //   - currentIncome: number
+    //   - onboardingCompleted: bool
+    //   - currentWeek: int
+    //
+    // Collection: users/{userId}/paths
+    // Collection: users/{userId}/offers
+    // Collection: users/{userId}/leads
+    // Collection: users/{userId}/reviews
+    // Collection: users/{userId}/chat
+    // Collection: users/{userId}/landingPages
+    // Collection: users/{userId}/tasks
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && 
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isPremium == true ||
+         request.auth.token.email == "22dftba@gmail.com" && request.auth.token.email_verified == true);
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow create: if isOwner(userId);
+      allow update: if isOwner(userId) || isAdmin();
+
+      match /paths/{pathId} {
+        allow read, write: if isOwner(userId);
+      }
+      match /offers/{offerId} {
+        allow read, write: if isOwner(userId);
+      }
+      match /leads/{leadId} {
+        allow read, write: if isOwner(userId);
+      }
+      match /reviews/{reviewId} {
+        allow read, write: if isOwner(userId);
+      }
+      match /chat/{messageId} {
+        allow read, write: if isOwner(userId);
+      }
+      match /landingPages/{pageId} {
+        allow read, write: if isOwner(userId);
+      }
+      match /tasks/{taskId} {
+        allow read, write: if isOwner(userId);
+      }
+    }
+  }
+}
