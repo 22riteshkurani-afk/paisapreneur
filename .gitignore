@@ -1,8 +1,25 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+
+# Environments and secrets
 .env
 .env.local
-.venv
-venv
-__pycache__/
-*.pyc
+*.env
+*.env.local
+.venv/
+venv/
+ENV/
+env/
+
+# Pytest and coverage
 .pytest_cache/
-data/resumes/*.json
+.coverage
+htmlcov/
+
+# Node and frontend build artifacts
+node_modules/
+dist/
+build/

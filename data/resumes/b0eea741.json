@@ -1,0 +1,56 @@
+{
+  "personal": {
+    "full_name": "Pooja Verma",
+    "title": "Senior Growth Product Manager",
+    "email": "pooja@example.com",
+    "phone": "+91 91234 56789",
+    "location": "Delhi, India",
+    "linkedin": "linkedin.com/in/pooja",
+    "github": "github.com/pooja",
+    "website": "pooja.me",
+    "summary": "Growth leader scaling digital platforms from 0 to 1M users."
+  },
+  "education": [
+    {
+      "degree": "MBA",
+      "institution": "IIM Ahmedabad",
+      "year": "2021-2023",
+      "gpa": "3.9/4.0"
+    }
+  ],
+  "skills": [
+    "Product Strategy",
+    "Growth Marketing",
+    "Funnel Optimization",
+    "SQL",
+    "B2B Sales"
+  ],
+  "experience": [
+    {
+      "company": "Unicorn FinTech",
+      "role": "Growth Lead",
+      "start_date": "2023",
+      "end_date": "Present",
+      "description": "Scaled user acquisition by 240% YoY."
+    }
+  ],
+  "projects": [
+    {
+      "name": "Viral Acquisition Engine",
+      "description": "WhatsApp referral engine for SMEs",
+      "tech_stack": "Python, WhatsApp API",
+      "link": "https://pooja.me/projects"
+    }
+  ],
+  "certifications": [
+    {
+      "name": "Reforge Growth Series",
+      "issuer": "Reforge",
+      "date": "2024"
+    }
+  ],
+  "achievements": [
+    "Featured in Top 30 Under 30 Product Leaders."
+  ],
+  "template": "modern"
+}

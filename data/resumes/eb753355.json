@@ -1,0 +1,56 @@
+{
+  "personal": {
+    "full_name": "Aarav Sharma",
+    "title": "Full Stack AI Engineer",
+    "email": "aarav@example.com",
+    "phone": "+91 98765 43210",
+    "location": "Bengaluru, India",
+    "linkedin": "https://linkedin.com/in/aarav",
+    "github": "https://github.com/aarav",
+    "website": "https://aarav.dev",
+    "summary": "Experienced builder creating AI applications."
+  },
+  "education": [
+    {
+      "degree": "B.Tech in Computer Science",
+      "institution": "IIT Bombay",
+      "year": "2020 - 2024",
+      "gpa": "9.2/10"
+    }
+  ],
+  "skills": [
+    "Python",
+    "FastAPI",
+    "React",
+    "Gemini AI",
+    "PostgreSQL"
+  ],
+  "experience": [
+    {
+      "company": "TechCorp India",
+      "role": "Software Engineer",
+      "start_date": "2024",
+      "end_date": "Present",
+      "description": "Architected LLM backend services handling 1M+ requests."
+    }
+  ],
+  "projects": [
+    {
+      "name": "Paisapreneur AI",
+      "description": "Business blueprint and resume builder SaaS",
+      "tech_stack": "FastAPI, Tailwind, Gemini",
+      "link": "https://github.com/example/paisapreneur"
+    }
+  ],
+  "certifications": [
+    {
+      "name": "Google Cloud Professional ML Engineer",
+      "issuer": "Google Cloud",
+      "date": "2025"
+    }
+  ],
+  "achievements": [
+    "1st place in National AI Hackathon 2025"
+  ],
+  "template": "modern"
+}

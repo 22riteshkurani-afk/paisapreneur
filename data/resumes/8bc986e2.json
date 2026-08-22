@@ -1,0 +1,56 @@
+{
+  "personal": {
+    "full_name": "Kavya Nair",
+    "title": "Chief Technology & Product Officer",
+    "email": "kavya@example.com",
+    "phone": "+91 99887 76655",
+    "location": "Bengaluru, India",
+    "linkedin": "https://linkedin.com/in/kavyanair",
+    "github": "https://github.com/kavya",
+    "website": "https://kavya.ai",
+    "summary": "Product leader scaling deep-tech platforms from 0 to  ARR."
+  },
+  "education": [
+    {
+      "degree": "B.Tech in Computer Science",
+      "institution": "IIT Madras",
+      "year": "2018-2022",
+      "gpa": "9.4/10"
+    }
+  ],
+  "skills": [
+    "Python",
+    "System Architecture",
+    "Product Strategy",
+    "GTM & Enterprise Sales",
+    "Kubernetes"
+  ],
+  "experience": [
+    {
+      "company": "NextGen Platforms",
+      "role": "Lead Product Architect",
+      "start_date": "2022",
+      "end_date": "Present",
+      "description": "Spearheaded AI execution engine handling 5M+ monthly workflows."
+    }
+  ],
+  "projects": [
+    {
+      "name": "Autonomous Workflow Engine",
+      "description": "High-throughput LLM workflow orchestration platform",
+      "tech_stack": "Python, FastAPI, Redis, Docker",
+      "link": "https://github.com/kavya/workflow-engine"
+    }
+  ],
+  "certifications": [
+    {
+      "name": "AWS Certified Solutions Architect - Professional",
+      "issuer": "AWS",
+      "date": "2024"
+    }
+  ],
+  "achievements": [
+    "ET 30 Under 30 Tech Leader 2024"
+  ],
+  "template": "modern"
+}

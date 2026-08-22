@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: paisapreneur
+    env: docker
+    plan: starter
+    dockerfilePath: Dockerfile
+    envVars:
+      - key: DATABASE_URL
+      - key: SECRET_KEY

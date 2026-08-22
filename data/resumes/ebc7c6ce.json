@@ -1,0 +1,56 @@
+{
+  "personal": {
+    "full_name": "Devansh Patel",
+    "title": "AI Systems Engineer",
+    "email": "devansh@example.com",
+    "phone": "+91 98765 00000",
+    "location": "Hyderabad, India",
+    "linkedin": "linkedin.com/in/devansh",
+    "github": "github.com/devansh",
+    "website": "devansh.tech",
+    "summary": "Architecting LLM orchestration engines."
+  },
+  "education": [
+    {
+      "degree": "B.Tech IT",
+      "institution": "IIIT Hyderabad",
+      "year": "2021-2025",
+      "gpa": "9.1/10"
+    }
+  ],
+  "skills": [
+    "Python",
+    "FastAPI",
+    "PyTorch",
+    "Docker",
+    "Kubernetes"
+  ],
+  "experience": [
+    {
+      "company": "AI Labs India",
+      "role": "Founding ML Engineer",
+      "start_date": "2024",
+      "end_date": "Present",
+      "description": "Built low-latency inference pipelines."
+    }
+  ],
+  "projects": [
+    {
+      "name": "Inference Gateway",
+      "description": "High-throughput LLM gateway with smart caching",
+      "tech_stack": "Python, Redis, FastAPI",
+      "link": "https://github.com/devansh/gateway"
+    }
+  ],
+  "certifications": [
+    {
+      "name": "AWS Certified Solutions Architect",
+      "issuer": "Amazon",
+      "date": "2024"
+    }
+  ],
+  "achievements": [
+    "Smart India Hackathon Winner 2024"
+  ],
+  "template": "modern"
+}

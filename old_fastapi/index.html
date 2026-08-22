@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Paisapreneur AI</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+
+<div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-xl">
+  
+  <h1 class="text-2xl font-bold mb-4 text-center">Build your AI-Powered Business empire</h1>
+
+  <input 
+    id="industry"
+    type="text"
+    placeholder="Enter industry (e.g. fitness, AI, food)"
+    class="w-full p-3 border rounded-lg mb-4"
+  />
+
+  <button 
+    onclick="generateIdea()"
+    class="w-full bg-blue-600 text-white p-3 rounded-lg"
+  >
+    Generate Idea
+  </button>
+
+  <div id="loading" class="text-center mt-4 hidden">⏳ Generating...</div>
+
+  <div id="result" class="mt-6 hidden">
+    <h2 class="text-xl font-bold mb-2" id="idea_name"></h2>
+
+    <p><b>Description:</b> <span id="description"></span></p>
+    <p><b>Target Market:</b> <span id="target"></span></p>
+    <p><b>Startup Cost:</b> <span id="cost"></span></p>
+    <p><b>Revenue Model:</b> <span id="revenue"></span></p>
+
+    <ul id="steps" class="list-disc ml-6 mt-2"></ul>
+
+    <button 
+      onclick="downloadJSON()"
+      class="mt-4 bg-green-600 text-white px-4 py-2 rounded"
+    >
+      Download JSON
+    </button>
+    <button onclick="payNow()" class="mt-3 bg-blue-600 text-white px-4 py-2 rounded">
+  Unlock Premium Idea ₹99
+</button>
+<button onclick="shareIdea()" class="mt-3 bg-green-600 text-white px-4 py-2 rounded">
+  Share on WhatsApp
+</button>
+
+  </div>
+
+</div>
+
+<script>
+async function generateIdea() {
+  const industry = document.getElementById("industry").value;
+
+  const res = await fetch(`/generate?industry=${industry}`);
+  const data = await res.json();
+
+  document.getElementById("result").classList.remove("hidden");
+
+  document.getElementById("idea_name").innerText = data.idea_name;
+  document.getElementById("description").innerText = data.description;
+  document.getElementById("target").innerText = data.target_market;
+  document.getElementById("cost").innerText = data.startup_cost;
+  document.getElementById("revenue").innerText = data.revenue_model;
+
+  const stepsList = document.getElementById("steps");
+  stepsList.innerHTML = "";
+
+  data.steps.forEach(step => {
+    const li = document.createElement("li");
+    li.innerText = step;
+    stepsList.appendChild(li);
+  });
+    }
+    function payNow() {
+  alert("Payment integration coming next 🚀");
+}
+function shareIdea() {
+  const text = `
+🚀 Startup Idea: ${document.getElementById("idea_name").innerText}
+
+📌 Description:
+${document.getElementById("description").innerText}
+
+🎯 Target Market:
+${document.getElementById("target").innerText}
+
+💰 Cost:
+${document.getElementById("cost").innerText}
+
+Built using Paisapreneur AI 🚀
+`;
+
+  window.open(`https://wa.me/?text=${encodeURIComponent(text)}`);
+}
+</script>
+
+</body>
+</html>
