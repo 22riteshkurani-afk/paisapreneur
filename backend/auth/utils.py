@@ -65,7 +65,7 @@ def create_or_update_user(oauth_info):
         oauth_info: dict from verify_google_token()
         
     Returns:
-        User object
+        dict with user payload
     """
     with session_scope() as session:
         user = session.query(User).filter_by(email=oauth_info["email"]).first()
@@ -78,24 +78,22 @@ def create_or_update_user(oauth_info):
             user.last_login = datetime.utcnow()
             session.commit()
             session.refresh(user)
-            session.expunge(user)
-        else:
-            user = User(
-                email=oauth_info["email"],
-                full_name=oauth_info["full_name"],
-                avatar_url=oauth_info["avatar_url"],
-                provider="google",
-                provider_id=oauth_info["provider_id"],
-                onboarding_completed=False,
-                subscription_tier="free",
-                last_login=datetime.utcnow(),
-            )
-            session.add(user)
-            session.commit()
-            session.refresh(user)
-            session.expunge(user)
+            return user.to_dict()
 
-        return user
+        user = User(
+            email=oauth_info["email"],
+            full_name=oauth_info["full_name"],
+            avatar_url=oauth_info["avatar_url"],
+            provider="google",
+            provider_id=oauth_info["provider_id"],
+            onboarding_completed=False,
+            subscription_tier="free",
+            last_login=datetime.utcnow(),
+        )
+        session.add(user)
+        session.commit()
+        session.refresh(user)
+        return user.to_dict()
 
 
 def create_email_user(email: str, password: str, full_name: str | None = None):
@@ -112,7 +110,8 @@ def create_email_user(email: str, password: str, full_name: str | None = None):
             existing.full_name = full_name or existing.full_name
             existing.password_hash = generate_password_hash(password)
             existing.last_login = datetime.utcnow()
-            return existing
+            session.commit()
+            return existing.to_dict()
 
         user = User(
             email=normalized_email,
@@ -126,8 +125,7 @@ def create_email_user(email: str, password: str, full_name: str | None = None):
         session.add(user)
         session.commit()
         session.refresh(user)
-        session.expunge(user)
-        return user
+        return user.to_dict()
 
 
 def authenticate_email_user(email: str, password: str):
@@ -140,8 +138,7 @@ def authenticate_email_user(email: str, password: str):
             user.last_login = datetime.utcnow()
             session.commit()
             session.refresh(user)
-            session.expunge(user)
-            return user
+            return user.to_dict()
         return None
 
 
@@ -186,18 +183,15 @@ def generate_tokens(user_id):
     Returns:
         tuple (access_token, refresh_token)
     """
-    # Access token expires in 15 minutes
+    subject = str(user_id)
     access_token = create_access_token(
-        identity=user_id,
+        identity=subject,
         expires_delta=timedelta(minutes=15)
     )
-    
-    # Refresh token expires in 7 days
     refresh_token = create_refresh_token(
-        identity=user_id,
+        identity=subject,
         expires_delta=timedelta(days=7)
     )
-    
     return access_token, refresh_token
 
 

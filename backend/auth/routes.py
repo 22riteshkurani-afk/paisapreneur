@@ -37,23 +37,17 @@ def google_login():
         data = request.get_json()
         if not data or "token" not in data:
             return jsonify({"error": "Missing Google token"}), 400
-        
+
         google_token = data["token"]
-        
-        # Verify Google token
         oauth_info = verify_google_token(google_token)
-        
-        # Create or update user in database
         user = create_or_update_user(oauth_info)
-        
-        # Generate JWT tokens
-        access_token, refresh_token = generate_tokens(user.id)
-        
+        access_token, refresh_token = generate_tokens(user["id"])
+
         return jsonify({
             "success": True,
             "access_token": access_token,
             "refresh_token": refresh_token,
-            "user": user.to_dict(),
+            "user": user,
         }), 200
         
     except ValueError as e:
@@ -74,12 +68,12 @@ def register_user():
 
     try:
         user = create_email_user(email, password, full_name)
-        access_token, refresh_token = generate_tokens(user.id)
+        access_token, refresh_token = generate_tokens(user["id"])
         return jsonify({
             "success": True,
             "access_token": access_token,
             "refresh_token": refresh_token,
-            "user": user.to_dict(),
+            "user": user,
         }), 201
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 400
@@ -98,12 +92,12 @@ def login_user():
     if not user:
         return jsonify({"error": "Invalid email or password"}), 401
 
-    access_token, refresh_token = generate_tokens(user.id)
+    access_token, refresh_token = generate_tokens(user["id"])
     return jsonify({
         "success": True,
         "access_token": access_token,
         "refresh_token": refresh_token,
-        "user": user.to_dict(),
+        "user": user,
     }), 200
 
 

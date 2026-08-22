@@ -54,10 +54,21 @@ app = Flask(__name__, static_folder=FRONTEND_DIST, static_url_path="")
 # ============================================================================
 # SECURITY CONFIGURATION
 # ============================================================================
-# CORS configuration - hardened for production
+# CORS configuration - include the local Vite development ports used by the frontend
+# as well as the API host so browser-based auth flows work during local validation.
+DEFAULT_CORS_ORIGINS = (
+    "http://localhost:5173,"
+    "http://localhost:5174,"
+    "http://localhost:5175,"
+    "http://127.0.0.1:5173,"
+    "http://127.0.0.1:5174,"
+    "http://127.0.0.1:5175,"
+    "http://localhost:8000,"
+    "http://127.0.0.1:8000"
+)
 CORS(app, resources={
     r"/api/*": {
-        "origins": os.getenv("CORS_ORIGINS", "http://localhost:5173,http://localhost:8000").split(","),
+        "origins": os.getenv("CORS_ORIGINS", DEFAULT_CORS_ORIGINS).split(","),
         "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
         "allow_headers": ["Content-Type", "Authorization"],
         "supports_credentials": True,
@@ -353,7 +364,8 @@ def user_profile():
 
     try:
         token = auth_header.split(" ", 1)[1].strip()
-        user_id = decode_token(token)["sub"]
+        decoded = decode_token(token)
+        user_id = int(decoded["sub"])
     except Exception:
         return jsonify({"error": "Unauthorized"}), 401
 
