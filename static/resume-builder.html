@@ -79,11 +79,14 @@
 
       <!-- Step 0: Personal Info -->
       <div class="rb-step active" data-step="0">
-        <div class="rb-card">
-          <div class="rb-card__title">
-            <span class="rb-card__icon">👤</span>
-            <span>Personal Information</span>
-            <span class="rb-card__line"></span>
+          <div class="rb-card__title" style="justify-content:space-between;">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <span class="rb-card__icon">👤</span>
+              <span>Personal Information</span>
+            </div>
+            <button type="button" class="rb-ai-btn" onclick="importFromCareerPassport()" style="background:var(--accent-mid);color:white;border:none;padding:6px 14px;">
+              ⚡ Load from Career Passport
+            </button>
           </div>
           <div class="rb-form-grid">
             <div class="rb-field">

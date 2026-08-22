@@ -1,0 +1,127 @@
+{
+  "passport_id": "cp_e2e_verify_99",
+  "user_id": null,
+  "personal": {
+    "full_name": "Kavya Nair",
+    "title": "Chief Technology & Product Officer",
+    "email": "kavya@example.com",
+    "phone": "+91 99887 76655",
+    "location": "Bengaluru, India",
+    "linkedin": "https://linkedin.com/in/kavyanair",
+    "github": "https://github.com/kavya",
+    "website": "https://kavya.ai",
+    "summary": "Product leader scaling deep-tech platforms from 0 to  ARR."
+  },
+  "preferences": {
+    "target_roles": [
+      "Founder & CTO",
+      "VP Engineering",
+      "Head of AI Product"
+    ],
+    "target_industries": [
+      "Enterprise AI",
+      "Developer Tools",
+      "FinTech"
+    ],
+    "work_preference": "Hybrid / Remote",
+    "location_preference": "Bengaluru / Remote",
+    "salary_expectation": "₹45L - ₹60L",
+    "availability": "Immediate"
+  },
+  "skills": [
+    {
+      "name": "Python",
+      "category": "Technical",
+      "proficiency": "Expert",
+      "source": "Verified"
+    },
+    {
+      "name": "System Architecture",
+      "category": "Technical",
+      "proficiency": "Expert",
+      "source": "Verified"
+    },
+    {
+      "name": "Product Strategy",
+      "category": "Product",
+      "proficiency": "Expert",
+      "source": "Self-reported"
+    },
+    {
+      "name": "GTM & Enterprise Sales",
+      "category": "Business",
+      "proficiency": "Advanced",
+      "source": "Self-reported"
+    },
+    {
+      "name": "Kubernetes",
+      "category": "Technical",
+      "proficiency": "Advanced",
+      "source": "Verified"
+    }
+  ],
+  "experience": [
+    {
+      "company": "NextGen Platforms",
+      "role": "Lead Product Architect",
+      "start_date": "2022",
+      "end_date": "Present",
+      "description": "Spearheaded AI execution engine handling 5M+ monthly workflows."
+    }
+  ],
+  "education": [
+    {
+      "degree": "B.Tech in Computer Science",
+      "institution": "IIT Madras",
+      "year": "2018-2022",
+      "gpa": "9.4/10"
+    }
+  ],
+  "certifications": [
+    {
+      "name": "AWS Certified Solutions Architect - Professional",
+      "issuer": "AWS",
+      "date": "2024"
+    }
+  ],
+  "projects": [
+    {
+      "name": "Autonomous Workflow Engine",
+      "description": "High-throughput LLM workflow orchestration platform",
+      "tech_stack": "Python, FastAPI, Redis, Docker",
+      "link": "https://github.com/kavya/workflow-engine"
+    }
+  ],
+  "achievements": [
+    "ET 30 Under 30 Tech Leader 2024"
+  ],
+  "assessments": [
+    {
+      "id": "eval_abdb03",
+      "assessment_type": "Venture Readiness",
+      "target_context": "CleanTech",
+      "readiness_score": 88,
+      "founder_profile": "High-Velocity Tech & Product Operator",
+      "strengths": [
+        "Full-stack technical engineering and rapid product deployment",
+        "Systems automation to keep operational overhead under 15%",
+        "Agile iteration based on early customer analytics"
+      ],
+      "gaps": [
+        "Direct B2B enterprise procurement & contract negotiation",
+        "Offline hyperlocal distribution logistics"
+      ],
+      "actions": [
+        "Deploy an interactive WhatsApp demo bot to capture verified customer demand in 48 hours",
+        "Form an advisory partnership with an experienced regional distributor",
+        "Pre-sell 10 founding customer packages before building custom tooling"
+      ],
+      "co_founder_profile": "Commercial & Go-To-Market Lead with strong existing relationships in Indian MSME/retail channels",
+      "created_at": "2026-08-16T15:51:57Z"
+    }
+  ],
+  "active_resume_id": "8bc986e2",
+  "active_portfolio_id": "8bc986e2",
+  "template": "modern",
+  "updated_at": "2026-08-16T15:51:57Z"
+}

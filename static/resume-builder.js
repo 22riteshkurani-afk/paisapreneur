@@ -196,10 +196,26 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   }
-  // Add initial entries
-  addEducation();
-  addExperience();
-  addProject();
+  // Check URL parameters for source=passport
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('source') === 'passport') {
+    importFromCareerPassport(urlParams.get('id'));
+  }
+
+  // Check if there is a venture project synced from Blueprint Engine
+  const syncedProject = sessionStorage.getItem('paisapreneur_sync_project');
+  if (syncedProject) {
+    try {
+      const projData = JSON.parse(syncedProject);
+      addProject(projData);
+      sessionStorage.removeItem('paisapreneur_sync_project');
+      showToast('⚡ Synced venture from Blueprint into Career Passport Projects!', 'success');
+    } catch (e) {
+      addProject();
+    }
+  } else if (urlParams.get('source') !== 'passport') {
+    addProject();
+  }
 });
 
 // ── Experience ──────────────────────────────────────────────────────────────
@@ -260,7 +276,7 @@ function gatherExperience() {
 // ── Projects ────────────────────────────────────────────────────────────────
 let projectCount = 0;
 
-function addProject() {
+function addProject(initialData = null) {
   const container = document.getElementById('project-entries');
   const idx = projectCount++;
   const descId = `proj-desc-${idx}`;
@@ -277,19 +293,19 @@ function addProject() {
     <div class="rb-form-grid">
       <div class="rb-field">
         <label class="rb-field__label">Project Name</label>
-        <input class="rb-field__input proj-name" type="text" placeholder="E-Commerce Platform" />
+        <input class="rb-field__input proj-name" type="text" placeholder="E-Commerce Platform" value="${esc(initialData?.name || '')}" />
       </div>
       <div class="rb-field">
         <label class="rb-field__label">Tech Stack</label>
-        <input class="rb-field__input proj-tech" type="text" placeholder="React, Node.js, MongoDB" />
+        <input class="rb-field__input proj-tech" type="text" placeholder="React, Node.js, MongoDB" value="${esc(initialData?.tech_stack || '')}" />
       </div>
       <div class="rb-field rb-field--full">
         <label class="rb-field__label">Description</label>
-        <textarea class="rb-field__textarea proj-desc" id="${descId}" rows="2" placeholder="Briefly describe the project and your role..."></textarea>
+        <textarea class="rb-field__textarea proj-desc" id="${descId}" rows="2" placeholder="Briefly describe the project and your role...">${esc(initialData?.description || '')}</textarea>
       </div>
       <div class="rb-field rb-field--full">
         <label class="rb-field__label">Link (optional)</label>
-        <input class="rb-field__input proj-link" type="url" placeholder="https://github.com/..." />
+        <input class="rb-field__input proj-link" type="url" placeholder="https://github.com/..." value="${esc(initialData?.link || '')}" />
       </div>
     </div>
   `;
@@ -754,5 +770,96 @@ async function saveAndGetPortfolio() {
       btn.disabled = false;
       btn.innerHTML = '🌐 Generate Portfolio';
     }
+  }
+}
+
+// ── Career Passport Integration ───────────────────────────────────────────────
+async function importFromCareerPassport(passportId = null) {
+  try {
+    let url = '/api/passport/active';
+    if (passportId) {
+      url = `/api/passport/${passportId}/export-resume`;
+    }
+    const res = await fetch(url);
+    if (!res.ok) {
+      showToast('Could not load Career Passport.', 'error');
+      return;
+    }
+    const passportOrResume = await res.json();
+    const data = passportOrResume.personal ? passportOrResume : passportOrResume;
+
+    // 1. Fill personal info
+    const p = data.personal || {};
+    if (p.full_name) document.getElementById('personal-name').value = p.full_name;
+    if (p.title) document.getElementById('personal-title').value = p.title;
+    if (p.email) document.getElementById('personal-email').value = p.email;
+    if (p.phone) document.getElementById('personal-phone').value = p.phone || '';
+    if (p.location) document.getElementById('personal-location').value = p.location || '';
+    if (p.linkedin) document.getElementById('personal-linkedin').value = p.linkedin || '';
+    if (p.github) document.getElementById('personal-github').value = p.github || '';
+    if (p.website) document.getElementById('personal-website').value = p.website || '';
+    if (p.summary) document.getElementById('personal-summary').value = p.summary || '';
+
+    // 2. Fill skills
+    if (data.skills && data.skills.length > 0) {
+      skills = [];
+      data.skills.forEach(s => {
+        const sName = typeof s === 'string' ? s : s.name;
+        if (sName && !skills.includes(sName)) skills.push(sName);
+      });
+      renderSkills();
+    }
+
+    // 3. Fill experience
+    if (data.experience && data.experience.length > 0) {
+      const expContainer = document.getElementById('experience-entries');
+      expContainer.innerHTML = '';
+      experienceCount = 0;
+      data.experience.forEach(exp => {
+        addExperience();
+        const entries = document.querySelectorAll('#experience-entries .rb-entry');
+        const lastEntry = entries[entries.length - 1];
+        if (lastEntry) {
+          lastEntry.querySelector('.exp-company').value = exp.company || '';
+          lastEntry.querySelector('.exp-role').value = exp.role || '';
+          lastEntry.querySelector('.exp-start').value = exp.start_date || '';
+          lastEntry.querySelector('.exp-end').value = exp.end_date || '';
+          lastEntry.querySelector('.exp-desc').value = exp.description || '';
+        }
+      });
+    }
+
+    // 4. Fill education
+    if (data.education && data.education.length > 0) {
+      const eduContainer = document.getElementById('education-entries');
+      eduContainer.innerHTML = '';
+      educationCount = 0;
+      data.education.forEach(edu => {
+        addEducation();
+        const entries = document.querySelectorAll('#education-entries .rb-entry');
+        const lastEntry = entries[entries.length - 1];
+        if (lastEntry) {
+          lastEntry.querySelector('.edu-degree').value = edu.degree || '';
+          lastEntry.querySelector('.edu-institution').value = edu.institution || '';
+          lastEntry.querySelector('.edu-year').value = edu.year || '';
+          lastEntry.querySelector('.edu-gpa').value = edu.gpa || '';
+        }
+      });
+    }
+
+    // 5. Fill projects
+    if (data.projects && data.projects.length > 0) {
+      const projContainer = document.getElementById('project-entries');
+      projContainer.innerHTML = '';
+      projectCount = 0;
+      data.projects.forEach(proj => {
+        addProject(proj);
+      });
+    }
+
+    showToast('✨ Loaded all credentials from your Career Passport!', 'success');
+  } catch (err) {
+    console.error('Error importing Career Passport:', err);
+    showToast('Failed to import Career Passport.', 'error');
   }
 }

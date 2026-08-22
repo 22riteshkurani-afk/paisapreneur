@@ -123,3 +123,49 @@ class TestHealthResponse:
         health = HealthResponse()
         assert health.status == "ok"
         assert health.version == "2.0.0"
+
+
+class TestCareerPassportModel:
+    """Test CareerPassport model, completion scoring, and conversion."""
+
+    def test_career_passport_completion_scoring(self):
+        from models import CareerPassport, PersonalInfo, SkillItem, Experience, Education, Project
+
+        p = CareerPassport(
+            passport_id="cp_test1",
+            personal=PersonalInfo(
+                full_name="Aarav Sharma",
+                title="Lead AI Engineer",
+                email="aarav@example.com",
+                summary="AI architect",
+            ),
+            skills=[
+                SkillItem(name="Python", category="Technical", proficiency="Expert"),
+                SkillItem(name="FastAPI", category="Technical", proficiency="Advanced"),
+                SkillItem(name="React", category="Technical", proficiency="Intermediate"),
+            ],
+            education=[Education(degree="B.Tech", institution="IIT Bombay")],
+            experience=[Experience(company="Tech Corp", role="Engineer")],
+            projects=[Project(name="Paisapreneur")]
+        )
+        score = p.calculate_completion()
+        assert score >= 80
+
+    def test_career_passport_to_and_from_resume_data(self):
+        from models import CareerPassport, PersonalInfo, ResumeData
+
+        res_data = ResumeData(
+            personal=PersonalInfo(full_name="Neha Gupta", email="neha@example.com"),
+            skills=["Python", "SQL", "Product Strategy"],
+            template="classic"
+        )
+        passport = CareerPassport.from_resume_data(res_data, passport_id="cp_neha")
+        assert passport.passport_id == "cp_neha"
+        assert passport.personal.full_name == "Neha Gupta"
+        assert len(passport.skills) == 3
+
+        exported_resume = passport.to_resume_data()
+        assert exported_resume.personal.full_name == "Neha Gupta"
+        assert exported_resume.skills == ["Python", "SQL", "Product Strategy"]
+        assert exported_resume.template == "classic"
+

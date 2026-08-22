@@ -1,5 +1,6 @@
 /* ═══════════════════════════════════════════════════════════════════════════
-   Paisapreneur AI v2 — Business Blueprint Engine
+   Paisapreneur AI v3 — Career & Entrepreneurship Operating System
+   Business Blueprint Engine, Career Passport & Venture Bridge
    ═══════════════════════════════════════════════════════════════════════════ */
 
 const $ = (sel) => document.querySelector(sel);
@@ -167,10 +168,95 @@ function renderBlueprint(d) {
 
   blueprintEl.classList.add("visible");
 
+  // Reset readiness state
+  const readinessResult = $("#readiness-result");
+  if (readinessResult) readinessResult.style.display = "none";
+
   // Scroll to result
   setTimeout(() => {
     blueprintEl.scrollIntoView({ behavior: "smooth", block: "start" });
   }, 200);
+}
+
+// ── Career Passport: Venture Readiness Assessment ───────────────────────────
+async function assessVentureReadiness() {
+  if (!currentBlueprint) return;
+
+  const btn = $("#assess-readiness-btn");
+  const resultDiv = $("#readiness-result");
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Analyzing Competency Fit...';
+  }
+
+  try {
+    const res = await fetch("/api/career/venture-readiness", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        blueprint_industry: currentBlueprint.niche || currentBlueprint.business_name,
+        blueprint_name: currentBlueprint.business_name,
+        skills: ["Software Engineering", "Product Strategy", "Digital Marketing", "Operations"],
+        experience_summary: "Multi-disciplinary tech operator and venture builder."
+      }),
+    });
+
+    if (!res.ok) throw new Error("Assessment request failed");
+
+    const data = await res.json();
+
+    $("#readiness-score").textContent = `${data.readiness_score}%`;
+    $("#readiness-profile").textContent = data.founder_profile;
+    
+    // Strengths
+    const strengthsEl = $("#readiness-strengths");
+    strengthsEl.innerHTML = (data.top_strengths || []).map(s => `<li>✅ ${s}</li>`).join("");
+
+    // Gaps
+    const gapsEl = $("#readiness-gaps");
+    gapsEl.innerHTML = (data.skill_gaps || []).map(g => `<li>⚠️ ${g}</li>`).join("");
+
+    // Actions
+    const actionsEl = $("#readiness-actions");
+    actionsEl.innerHTML = (data.fast_track_actions || []).map(a => `<li>🚀 ${a}</li>`).join("");
+
+    // Co-founder
+    $("#readiness-cofounder").textContent = data.co_founder_recommendation;
+
+    if (resultDiv) {
+      resultDiv.style.display = "block";
+      resultDiv.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+
+    showToast("Venture readiness analyzed!", "success");
+
+  } catch (err) {
+    showToast(err.message || "Failed to analyze readiness", "error");
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = "🔍 Assess My Founder Readiness";
+    }
+  }
+}
+
+// ── Career Passport: Sync Venture to Resume / Portfolio ─────────────────────
+function syncVentureToResume() {
+  if (!currentBlueprint) return;
+
+  const projectEntry = {
+    name: currentBlueprint.business_name,
+    description: `Founded & architected ${currentBlueprint.tagline}. Solved: ${currentBlueprint.problem_solved} Revenue target: ${(currentBlueprint.revenue_streams || [])[0]?.expected_monthly || '₹1.5L/mo'}.`,
+    tech_stack: Object.values(currentBlueprint.tools || {}).slice(0, 4).join(", ") || "FastAPI, Gemini AI, Framer",
+    link: "https://paisapreneur.ai",
+  };
+
+  sessionStorage.setItem("paisapreneur_sync_project", JSON.stringify(projectEntry));
+  showToast("Venture synced to Career Passport! Redirecting to Resume Builder...", "success");
+
+  setTimeout(() => {
+    window.location.href = "/resume-builder";
+  }, 600);
 }
 
 // ── Download JSON ──────────────────────────────────────────────────────────
@@ -249,6 +335,8 @@ function payNow() {
 }
 
 // ── Keyboard ───────────────────────────────────────────────────────────────
-industryInput.addEventListener("keydown", (e) => {
-  if (e.key === "Enter") generateBlueprint();
-});
+if (industryInput) {
+  industryInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") generateBlueprint();
+  });
+}

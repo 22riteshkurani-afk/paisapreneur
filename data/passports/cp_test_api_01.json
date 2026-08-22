@@ -1,0 +1,110 @@
+{
+  "passport_id": "cp_test_api_01",
+  "user_id": null,
+  "personal": {
+    "full_name": "Rohan Deshmukh",
+    "title": "Principal Growth Architect",
+    "email": "rohan@example.com",
+    "phone": "",
+    "location": "Pune, India",
+    "linkedin": "",
+    "github": "",
+    "website": "",
+    "summary": ""
+  },
+  "preferences": {
+    "target_roles": [
+      "Founder",
+      "VP Product"
+    ],
+    "target_industries": [
+      "FinTech",
+      "AI SaaS"
+    ],
+    "work_preference": "Remote",
+    "location_preference": "",
+    "salary_expectation": "",
+    "availability": "Immediate"
+  },
+  "skills": [
+    {
+      "name": "System Architecture",
+      "category": "Technical",
+      "proficiency": "Expert",
+      "source": "Self-reported"
+    },
+    {
+      "name": "Product Strategy",
+      "category": "Product",
+      "proficiency": "Advanced",
+      "source": "Self-reported"
+    },
+    {
+      "name": "Team Leadership",
+      "category": "Leadership",
+      "proficiency": "Expert",
+      "source": "Self-reported"
+    },
+    {
+      "name": "Rust",
+      "category": "Technical",
+      "proficiency": "Intermediate",
+      "source": "Resume"
+    },
+    {
+      "name": "Kubernetes",
+      "category": "Technical",
+      "proficiency": "Intermediate",
+      "source": "Resume"
+    }
+  ],
+  "experience": [
+    {
+      "company": "NextGen AI",
+      "role": "Principal Architect",
+      "start_date": "2024",
+      "end_date": "Present",
+      "description": "Architected low-latency distributed engines."
+    }
+  ],
+  "education": [
+    {
+      "degree": "M.Tech",
+      "institution": "COEP Pune",
+      "year": "2020",
+      "gpa": "9.0"
+    }
+  ],
+  "certifications": [],
+  "projects": [],
+  "achievements": [],
+  "assessments": [
+    {
+      "id": "eval_36a532",
+      "assessment_type": "Venture Readiness",
+      "target_context": "Healthcare AI",
+      "readiness_score": 88,
+      "founder_profile": "High-Velocity Tech & Product Operator",
+      "strengths": [
+        "Full-stack technical engineering and rapid product deployment",
+        "Systems automation to keep operational overhead under 15%",
+        "Agile iteration based on early customer analytics"
+      ],
+      "gaps": [
+        "Direct B2B enterprise procurement & contract negotiation",
+        "Offline hyperlocal distribution logistics"
+      ],
+      "actions": [
+        "Deploy an interactive WhatsApp demo bot to capture verified customer demand in 48 hours",
+        "Form an advisory partnership with an experienced regional distributor",
+        "Pre-sell 10 founding customer packages before building custom tooling"
+      ],
+      "co_founder_profile": "Commercial & Go-To-Market Lead with strong existing relationships in Indian MSME/retail channels",
+      "created_at": "2026-08-16T15:51:06Z"
+    }
+  ],
+  "active_resume_id": "",
+  "active_portfolio_id": "",
+  "template": "modern",
+  "updated_at": "2026-08-16T15:51:06Z"
+}

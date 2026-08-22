@@ -1,0 +1,34 @@
+{
+  "passport_id": "cp_minimal_test",
+  "user_id": null,
+  "personal": {
+    "full_name": "Aman Gupta",
+    "title": "",
+    "email": "aman@example.com",
+    "phone": "",
+    "location": "",
+    "linkedin": "",
+    "github": "",
+    "website": "",
+    "summary": ""
+  },
+  "preferences": {
+    "target_roles": [],
+    "target_industries": [],
+    "work_preference": "Flexible",
+    "location_preference": "",
+    "salary_expectation": "",
+    "availability": "Immediate"
+  },
+  "skills": [],
+  "experience": [],
+  "education": [],
+  "certifications": [],
+  "projects": [],
+  "achievements": [],
+  "assessments": [],
+  "active_resume_id": "",
+  "active_portfolio_id": "",
+  "template": "modern",
+  "updated_at": "2026-08-16T15:51:56Z"
+}

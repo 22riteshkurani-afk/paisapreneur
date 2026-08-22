@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Career Passport & Intelligence Dashboard — Paisapreneur AI</title>
+  <meta name="description" content="Manage your persistent Career Passport, skills matrix, venture readiness score, and career assets." />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html { font-size: 16px; scroll-behavior: smooth; -webkit-font-smoothing: antialiased; }
+
+    :root {
+      --bg: #0a0a1a;
+      --bg2: #12122a;
+      --glass: rgba(255, 255, 255, 0.05);
+      --glass-hover: rgba(255, 255, 255, 0.08);
+      --border: rgba(255, 255, 255, 0.1);
+      --border-hover: rgba(255, 255, 255, 0.2);
+      --text: #f0f0f5;
+      --text2: #9d9db5;
+      --muted: #6b6b85;
+      --accent: #6366f1;
+      --accent2: #7c3aed;
+      --accent-glow: rgba(99, 102, 241, 0.25);
+      --success: #10b981;
+      --success-glow: rgba(16, 185, 129, 0.2);
+      --warning: #f59e0b;
+      --error: #ef4444;
+      --radius: 16px;
+      --font: 'Inter', system-ui, -apple-system, sans-serif;
+    }
+
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background:
+        radial-gradient(ellipse 80% 50% at 20% 20%, rgba(124, 58, 237, 0.12) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 40% at 80% 80%, rgba(59, 130, 246, 0.1) 0%, transparent 60%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── Navbar ──────────────────────────────────────────────────────── */
+    .navbar {
+      position: sticky; top: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 32px;
+      background: rgba(10, 10, 26, 0.85);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+    }
+    .navbar__brand {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 1.25rem; font-weight: 800;
+      color: var(--text); text-decoration: none;
+    }
+    .navbar__logo {
+      width: 34px; height: 34px; border-radius: 8px;
+      background: linear-gradient(135deg, var(--accent2), var(--accent));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem;
+    }
+    .navbar__nav {
+      display: flex; align-items: center; gap: 20px;
+    }
+    .navbar__link {
+      color: var(--text2); text-decoration: none; font-size: 0.9rem; font-weight: 500;
+      transition: color 0.2s ease;
+    }
+    .navbar__link:hover, .navbar__link.active { color: var(--text); }
+    .navbar__btn {
+      padding: 8px 18px; border-radius: 8px; font-size: 0.85rem; font-weight: 600;
+      background: var(--accent); color: white; border: none; cursor: pointer; text-decoration: none;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .navbar__btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 14px var(--accent-glow);
+    }
+
+    /* ── Main Container ──────────────────────────────────────────────── */
+    .container {
+      position: relative; z-index: 1;
+      width: 100%; max-width: 1200px; margin: 0 auto; padding: 32px 24px 80px;
+    }
+
+    /* ── Hero Profile Header ─────────────────────────────────────────── */
+    .profile-hero {
+      background: var(--glass);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px 32px;
+      margin-bottom: 24px;
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 24px;
+      backdrop-filter: blur(12px);
+    }
+    .profile-hero__left {
+      display: flex; align-items: center; gap: 20px;
+    }
+    .profile-hero__avatar {
+      width: 76px; height: 76px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent2), var(--accent));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2rem; font-weight: 800; color: white;
+      box-shadow: 0 0 24px var(--accent-glow);
+      border: 2px solid rgba(255,255,255,0.2);
+    }
+    .profile-hero__name {
+      font-size: 1.6rem; font-weight: 800; color: var(--text); margin-bottom: 4px;
+    }
+    .profile-hero__title {
+      font-size: 1rem; color: var(--accent); font-weight: 600; margin-bottom: 6px;
+    }
+    .profile-hero__meta {
+      display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+      font-size: 0.85rem; color: var(--text2);
+    }
+    .badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 4px 10px; border-radius: 100px; font-size: 0.75rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.05em;
+    }
+    .badge--tier { background: rgba(99,102,241,0.2); color: var(--accent); border: 1px solid rgba(99,102,241,0.4); }
+    .badge--verified { background: var(--success-glow); color: var(--success); border: 1px solid rgba(16,185,129,0.3); }
+
+    .profile-hero__actions {
+      display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+    }
+    .btn {
+      padding: 10px 20px; border-radius: 8px; font-size: 0.9rem; font-weight: 600;
+      border: 1px solid transparent; cursor: pointer; text-decoration: none; display: inline-flex;
+      align-items: center; gap: 8px; transition: all 0.2s ease;
+    }
+    .btn--primary {
+      background: linear-gradient(135deg, var(--accent2), var(--accent));
+      color: white; border-color: rgba(255,255,255,0.1);
+    }
+    .btn--primary:hover {
+      box-shadow: 0 0 20px var(--accent-glow); transform: translateY(-1px);
+    }
+    .btn--secondary {
+      background: var(--glass); color: var(--text); border-color: var(--border);
+    }
+    .btn--secondary:hover {
+      background: var(--glass-hover); border-color: var(--border-hover); transform: translateY(-1px);
+    }
+    .btn--success {
+      background: var(--success-glow); color: var(--success); border-color: rgba(16,185,129,0.3);
+    }
+    .btn--success:hover {
+      background: rgba(16,185,129,0.25); transform: translateY(-1px);
+    }
+
+    /* ── Metrics Grid ────────────────────────────────────────────────── */
+    .metrics-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 20px; margin-bottom: 24px;
+    }
+    .metric-card {
+      background: var(--glass);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      backdrop-filter: blur(12px);
+      transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+    .metric-card:hover {
+      border-color: var(--border-hover);
+      transform: translateY(-2px);
+    }
+    .metric-card__header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .metric-card__title {
+      font-size: 0.85rem; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.06em; color: var(--text2);
+    }
+    .metric-card__icon { font-size: 1.4rem; }
+    .metric-card__value {
+      font-size: 2rem; font-weight: 800; color: var(--text); margin-bottom: 6px;
+    }
+    .metric-card__subtitle {
+      font-size: 0.85rem; color: var(--text2);
+    }
+
+    /* Progress bar */
+    .progress-bar {
+      width: 100%; height: 8px; background: rgba(255,255,255,0.1);
+      border-radius: 100px; overflow: hidden; margin-top: 10px;
+    }
+    .progress-bar__fill {
+      height: 100%; background: linear-gradient(90deg, var(--accent2), var(--accent), var(--success));
+      border-radius: 100px; transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* ── Content Grid ────────────────────────────────────────────────── */
+    .content-grid {
+      display: grid; grid-template-columns: 2fr 1fr; gap: 24px;
+    }
+    @media (max-width: 900px) {
+      .content-grid { grid-template-columns: 1fr; }
+    }
+
+    .card {
+      background: var(--glass);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-bottom: 24px;
+      backdrop-filter: blur(12px);
+    }
+    .card__header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 18px; padding-bottom: 12px; border-bottom: 1px solid var(--border);
+    }
+    .card__title {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 1.15rem; font-weight: 700; color: var(--text);
+    }
+
+    /* Skills matrix */
+    .skills-cluster {
+      margin-bottom: 16px;
+    }
+    .skills-cluster__label {
+      font-size: 0.8rem; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.06em; color: var(--muted); margin-bottom: 8px;
+    }
+    .skill-tags {
+      display: flex; flex-wrap: wrap; gap: 8px;
+    }
+    .skill-tag {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      padding: 6px 14px; border-radius: 100px;
+      font-size: 0.85rem; color: var(--text); font-weight: 500;
+      display: inline-flex; align-items: center; gap: 6px;
+    }
+    .skill-tag__prof {
+      font-size: 0.7rem; color: var(--accent); font-weight: 700; text-transform: uppercase;
+    }
+
+    /* Timeline & items */
+    .timeline-item {
+      position: relative; padding-left: 24px; margin-bottom: 18px;
+    }
+    .timeline-item::before {
+      content: ''; position: absolute; left: 6px; top: 6px; bottom: -18px; width: 2px;
+      background: var(--border);
+    }
+    .timeline-item:last-child::before { display: none; }
+    .timeline-item::after {
+      content: ''; position: absolute; left: 0; top: 6px; width: 14px; height: 14px;
+      border-radius: 50%; background: var(--accent); border: 3px solid var(--bg);
+    }
+    .timeline-item__role { font-weight: 700; font-size: 1rem; color: var(--text); }
+    .timeline-item__company { font-size: 0.85rem; color: var(--accent); margin-bottom: 4px; }
+    .timeline-item__date { font-size: 0.8rem; color: var(--muted); margin-bottom: 6px; }
+    .timeline-item__desc { font-size: 0.88rem; color: var(--text2); line-height: 1.5; }
+
+    /* Asset status cards */
+    .asset-card {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 14px;
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 12px;
+    }
+    .asset-card__info { display: flex; align-items: center; gap: 12px; }
+    .asset-card__icon { font-size: 1.6rem; }
+    .asset-card__name { font-weight: 600; font-size: 0.95rem; color: var(--text); }
+    .asset-card__status { font-size: 0.8rem; color: var(--text2); }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed; inset: 0; z-index: 1000;
+      background: rgba(0,0,0,0.75); backdrop-filter: blur(8px);
+      display: none; align-items: center; justify-content: center; padding: 20px;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: var(--bg2); border: 1px solid var(--border-hover);
+      border-radius: var(--radius); width: 100%; max-width: 700px;
+      max-height: 90vh; overflow-y: auto; padding: 32px;
+      box-shadow: 0 16px 48px rgba(0,0,0,0.6);
+    }
+    .modal__header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid var(--border);
+    }
+    .modal__title { font-size: 1.3rem; font-weight: 700; color: var(--text); }
+    .modal__close {
+      background: none; border: none; font-size: 1.5rem; color: var(--text2);
+      cursor: pointer; padding: 4px;
+    }
+    .modal__close:hover { color: var(--text); }
+
+    .form-group { margin-bottom: 16px; }
+    .form-label {
+      display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px;
+      color: var(--text2);
+    }
+    .form-input, .form-textarea {
+      width: 100%; padding: 10px 14px; background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border); border-radius: 8px; color: var(--text);
+      font-size: 0.9rem; font-family: var(--font);
+    }
+    .form-input:focus, .form-textarea:focus {
+      outline: none; border-color: var(--accent); box-shadow: 0 0 12px var(--accent-glow);
+    }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    @media (max-width: 600px) { .form-grid { grid-template-columns: 1fr; } }
+
+    /* Toast */
+    .toast {
+      position: fixed; bottom: 24px; right: 24px; z-index: 2000;
+      padding: 12px 20px; border-radius: 8px; background: var(--bg2);
+      color: var(--text); border: 1px solid var(--border);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5); font-size: 0.9rem;
+      display: none; align-items: center; gap: 8px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <header class="navbar">
+    <a href="/" class="navbar__brand">
+      <div class="navbar__logo">⚡</div>
+      <span>PAISAPRENEUR AI</span>
+    </a>
+    <nav class="navbar__nav">
+      <a href="/" class="navbar__link">Blueprint Engine</a>
+      <a href="/resume-builder" class="navbar__link">Resume Builder</a>
+      <a href="/dashboard" class="navbar__link active">Career Passport</a>
+      <a href="/login" class="navbar__link">Account</a>
+    </nav>
+  </header>
+
+  <div class="container">
+
+    <!-- Hero Profile -->
+    <div class="profile-hero">
+      <div class="profile-hero__left">
+        <div class="profile-hero__avatar" id="hero-initial">P</div>
+        <div>
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+            <h1 class="profile-hero__name" id="hero-name">Career Passport</h1>
+            <span class="badge badge--tier" id="hero-tier">FREE TIER</span>
+            <span class="badge badge--verified">CANONICAL PASSPORT</span>
+          </div>
+          <div class="profile-hero__title" id="hero-title">High-Velocity Operator</div>
+          <div class="profile-hero__meta">
+            <span id="hero-email">user@paisapreneur.ai</span>
+            <span>•</span>
+            <span id="hero-location">India</span>
+            <span>•</span>
+            <span id="hero-passport-id" style="color:var(--muted);font-family:monospace;">ID: -</span>
+          </div>
+        </div>
+      </div>
+      <div class="profile-hero__actions">
+        <button class="btn btn--secondary" onclick="openEditModal()">✏️ Edit Passport</button>
+        <a href="/resume-builder" class="btn btn--primary" id="btn-open-resume">⚡ Resume Builder</a>
+        <a href="#" class="btn btn--success" id="btn-open-portfolio" target="_blank">🌐 Live Portfolio</a>
+      </div>
+    </div>
+
+    <!-- Metrics Overview -->
+    <div class="metrics-grid">
+      <!-- Profile Completion -->
+      <div class="metric-card">
+        <div class="metric-card__header">
+          <span class="metric-card__title">Profile Completion</span>
+          <span class="metric-card__icon">📊</span>
+        </div>
+        <div class="metric-card__value" id="val-completion">0%</div>
+        <div class="metric-card__subtitle" id="sub-completion">All essential sections tracked</div>
+        <div class="progress-bar">
+          <div class="progress-bar__fill" id="bar-completion" style="width: 0%;"></div>
+        </div>
+      </div>
+
+      <!-- Venture Readiness -->
+      <div class="metric-card">
+        <div class="metric-card__header">
+          <span class="metric-card__title">Venture Readiness</span>
+          <span class="metric-card__icon">🎯</span>
+        </div>
+        <div class="metric-card__value" id="val-readiness" style="color:var(--accent);">88/100</div>
+        <div class="metric-card__subtitle" id="val-archetype">Digital Systems & Product Builder</div>
+      </div>
+
+      <!-- Skills Matrix Count -->
+      <div class="metric-card">
+        <div class="metric-card__header">
+          <span class="metric-card__title">Verified Capabilities</span>
+          <span class="metric-card__icon">⚡</span>
+        </div>
+        <div class="metric-card__value" id="val-skills-count">0 Skills</div>
+        <div class="metric-card__subtitle" id="sub-skills">Across Tech, Product & GTM</div>
+      </div>
+
+      <!-- Target Preference -->
+      <div class="metric-card">
+        <div class="metric-card__header">
+          <span class="metric-card__title">Target Role</span>
+          <span class="metric-card__icon">💼</span>
+        </div>
+        <div class="metric-card__value" id="val-target-role" style="font-size:1.4rem;">Founder / PM</div>
+        <div class="metric-card__subtitle" id="sub-target-role">Active Target Preference</div>
+      </div>
+    </div>
+
+    <!-- Detailed Content Grid -->
+    <div class="content-grid">
+
+      <!-- Left Column: Skills, Experience, Assessments -->
+      <div>
+
+        <!-- Skills Matrix -->
+        <div class="card">
+          <div class="card__header">
+            <div class="card__title">
+              <span>⚡</span>
+              <span>Capabilities & Skills Matrix</span>
+            </div>
+            <button class="btn btn--secondary" style="padding:4px 12px;font-size:0.8rem;" onclick="openEditModal()">+ Add Skills</button>
+          </div>
+          <div id="skills-container">
+            <div class="skills-cluster">
+              <div class="skills-cluster__label">Technical & Engineering</div>
+              <div class="skill-tags" id="skills-tech">
+                <span class="skill-tag">Python <span class="skill-tag__prof">Expert</span></span>
+                <span class="skill-tag">FastAPI <span class="skill-tag__prof">Advanced</span></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Experience & Track Record -->
+        <div class="card">
+          <div class="card__header">
+            <div class="card__title">
+              <span>💼</span>
+              <span>Track Record & Experience</span>
+            </div>
+            <button class="btn btn--secondary" style="padding:4px 12px;font-size:0.8rem;" onclick="openEditModal()">+ Add Role</button>
+          </div>
+          <div id="experience-container">
+            <p style="color:var(--text2);font-size:0.9rem;">No experience entries yet. Click "+ Add Role" to record your history.</p>
+          </div>
+        </div>
+
+        <!-- Intelligence & Readiness Assessments -->
+        <div class="card">
+          <div class="card__header">
+            <div class="card__title">
+              <span>🧠</span>
+              <span>Venture Readiness & Intelligence</span>
+            </div>
+            <a href="/" class="btn btn--secondary" style="padding:4px 12px;font-size:0.8rem;">+ New Assessment</a>
+          </div>
+          <div id="assessment-container">
+            <div style="background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:12px;padding:16px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                <strong style="color:var(--text);">Latest Assessment: High-Velocity Operator</strong>
+                <span class="badge badge--tier" id="assess-badge">88% MATCH</span>
+              </div>
+              <p style="font-size:0.85rem;color:var(--text2);margin-bottom:10px;">
+                Identified Core Strengths: Technical execution speed, Agile customer workflow design.
+              </p>
+              <div style="font-size:0.8rem;color:var(--muted);" id="assess-date">Evaluated recently</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Right Column: Career Assets & Recommendations -->
+      <div>
+
+        <!-- Career Assets -->
+        <div class="card">
+          <div class="card__header">
+            <div class="card__title">
+              <span>📂</span>
+              <span>Connected Career Assets</span>
+            </div>
+          </div>
+
+          <!-- Active Resume -->
+          <div class="asset-card">
+            <div class="asset-card__info">
+              <span class="asset-card__icon">📄</span>
+              <div>
+                <div class="asset-card__name">ATS-Optimized Resume</div>
+                <div class="asset-card__status" id="resume-status">Synced with Passport</div>
+              </div>
+            </div>
+            <a href="/resume-builder" class="btn btn--secondary" style="padding:6px 12px;font-size:0.8rem;">Edit</a>
+          </div>
+
+          <!-- Active Portfolio -->
+          <div class="asset-card">
+            <div class="asset-card__info">
+              <span class="asset-card__icon">🌐</span>
+              <div>
+                <div class="asset-card__name">Live Portfolio Page</div>
+                <div class="asset-card__status" id="portfolio-status">Ready to Share</div>
+              </div>
+            </div>
+            <a href="#" id="portfolio-link-btn" class="btn btn--secondary" style="padding:6px 12px;font-size:0.8rem;" target="_blank">View</a>
+          </div>
+        </div>
+
+        <!-- Next Recommended Actions -->
+        <div class="card">
+          <div class="card__header">
+            <div class="card__title">
+              <span>🚀</span>
+              <span>Next Strategic Step</span>
+            </div>
+          </div>
+          <p style="font-size:0.9rem;color:var(--text2);line-height:1.6;margin-bottom:14px;" id="rec-action-text">
+            Sync your newly validated skills from your business blueprints directly into your Resume and publish your live personal portfolio.
+          </p>
+          <a href="/resume-builder" class="btn btn--primary" style="width:100%;justify-content:center;">⚡ Sync into Resume Builder</a>
+        </div>
+
+        <!-- Career Preferences -->
+        <div class="card">
+          <div class="card__header">
+            <div class="card__title">
+              <span>🎯</span>
+              <span>Preferences</span>
+            </div>
+          </div>
+          <div style="font-size:0.85rem;color:var(--text2);display:flex;flex-direction:column;gap:8px;">
+            <div><strong>Work Mode:</strong> <span id="pref-work">Remote / Hybrid</span></div>
+            <div><strong>Target Roles:</strong> <span id="pref-roles">Founder, Lead Engineer, Product Manager</span></div>
+            <div><strong>Availability:</strong> <span id="pref-avail">Immediate</span></div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- Edit / Onboarding Modal -->
+  <div class="modal-overlay" id="edit-modal">
+    <div class="modal">
+      <div class="modal__header">
+        <div class="modal__title">✏️ Update Career Passport</div>
+        <button class="modal__close" onclick="closeEditModal()">×</button>
+      </div>
+
+      <form id="passport-form" onsubmit="savePassport(event)">
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Full Name *</label>
+            <input class="form-input" id="inp-name" type="text" required placeholder="Aarav Sharma" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Professional Headline / Title *</label>
+            <input class="form-input" id="inp-title" type="text" required placeholder="Full Stack AI Engineer" />
+          </div>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Email *</label>
+            <input class="form-input" id="inp-email" type="email" required placeholder="aarav@example.com" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Location</label>
+            <input class="form-input" id="inp-location" type="text" placeholder="Bengaluru, India" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Professional Summary</label>
+          <textarea class="form-textarea" id="inp-summary" rows="3" placeholder="Briefly describe your core capabilities and achievements..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Skills (Comma separated)</label>
+          <input class="form-input" id="inp-skills" type="text" placeholder="Python, FastAPI, React, Cloud Architecture, Growth Strategy" />
+        </div>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Target Role</label>
+            <input class="form-input" id="inp-target-role" type="text" placeholder="Founder / Tech Lead" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Work Preference</label>
+            <input class="form-input" id="inp-work-pref" type="text" placeholder="Remote / Hybrid" />
+          </div>
+        </div>
+
+        <div style="display:flex;justify-content:flex-end;gap:12px;margin-top:20px;">
+          <button type="button" class="btn btn--secondary" onclick="closeEditModal()">Cancel</button>
+          <button type="submit" class="btn btn--primary">💾 Save to Career Passport</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Message -->
+  <div class="toast" id="toast"></div>
+
+  <script>
+    let activePassport = null;
+
+    function showToast(msg, type = 'info') {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.style.display = 'flex';
+      setTimeout(() => { t.style.display = 'none'; }, 3000);
+    }
+
+    function openEditModal() {
+      if (activePassport) {
+        document.getElementById('inp-name').value = activePassport.personal?.full_name || '';
+        document.getElementById('inp-title').value = activePassport.personal?.title || '';
+        document.getElementById('inp-email').value = activePassport.personal?.email || '';
+        document.getElementById('inp-location').value = activePassport.personal?.location || '';
+        document.getElementById('inp-summary').value = activePassport.personal?.summary || '';
+        document.getElementById('inp-skills').value = (activePassport.skills || []).map(s => s.name || s).join(', ');
+        document.getElementById('inp-target-role').value = (activePassport.preferences?.target_roles || []).join(', ');
+        document.getElementById('inp-work-pref').value = activePassport.preferences?.work_preference || 'Flexible';
+      }
+      document.getElementById('edit-modal').classList.add('open');
+    }
+
+    function closeEditModal() {
+      document.getElementById('edit-modal').classList.remove('open');
+    }
+
+    async function loadPassport() {
+      try {
+        const res = await fetch('/api/passport/active');
+        if (res.ok) {
+          activePassport = await res.json();
+          renderDashboard(activePassport);
+        }
+      } catch (e) {
+        console.error('Error loading Career Passport:', e);
+      }
+    }
+
+    function renderDashboard(p) {
+      if (!p) return;
+      const name = p.personal?.full_name || 'Founder / Builder';
+      document.getElementById('hero-name').textContent = name;
+      document.getElementById('hero-initial').textContent = name.charAt(0).toUpperCase();
+      document.getElementById('hero-title').textContent = p.personal?.title || 'High-Velocity Operator';
+      document.getElementById('hero-email').textContent = p.personal?.email || 'Registered User';
+      document.getElementById('hero-location').textContent = p.personal?.location || 'India';
+      document.getElementById('hero-passport-id').textContent = 'ID: ' + (p.passport_id || 'LOCAL');
+
+      // Completion
+      const comp = p.calculate_completion ? p.calculate_completion() : (p.completion_percentage || 85);
+      document.getElementById('val-completion').textContent = comp + '%';
+      document.getElementById('bar-completion').style.width = comp + '%';
+
+      // Skills
+      const skillsList = p.skills || [];
+      document.getElementById('val-skills-count').textContent = skillsList.length + ' Skills';
+      const techTags = document.getElementById('skills-tech');
+      if (skillsList.length > 0) {
+        techTags.innerHTML = skillsList.map(s => {
+          const sName = typeof s === 'string' ? s : s.name;
+          const sProf = (typeof s === 'object' && s.proficiency) ? s.proficiency : 'Verified';
+          return `<span class="skill-tag">${sName} <span class="skill-tag__prof">${sProf}</span></span>`;
+        }).join('');
+      }
+
+      // Target Role
+      const roles = p.preferences?.target_roles || [];
+      if (roles.length > 0) {
+        document.getElementById('val-target-role').textContent = roles[0];
+        document.getElementById('pref-roles').textContent = roles.join(', ');
+      }
+
+      // Experience
+      const expContainer = document.getElementById('experience-container');
+      if (p.experience && p.experience.length > 0) {
+        expContainer.innerHTML = p.experience.map(e => `
+          <div class="timeline-item">
+            <div class="timeline-item__role">${e.role || 'Contributor'}</div>
+            <div class="timeline-item__company">${e.company || ''}</div>
+            <div class="timeline-item__date">${e.start_date || ''} - ${e.end_date || 'Present'}</div>
+            <div class="timeline-item__desc">${e.description || ''}</div>
+          </div>
+        `).join('');
+      }
+
+      // Asset links
+      const resumeId = p.active_resume_id || p.passport_id;
+      if (resumeId) {
+        document.getElementById('btn-open-resume').href = `/resume-builder?source=passport&id=${p.passport_id}`;
+        document.getElementById('btn-open-portfolio').href = `/portfolio/${resumeId}`;
+        document.getElementById('portfolio-link-btn').href = `/portfolio/${resumeId}`;
+      }
+    }
+
+    async function savePassport(e) {
+      e.preventDefault();
+      const rawSkills = document.getElementById('inp-skills').value.split(',').map(s => s.trim()).filter(Boolean);
+      const skillsArr = rawSkills.map(name => ({
+        name,
+        category: 'Technical',
+        proficiency: 'Advanced',
+        source: 'Self-reported'
+      }));
+
+      const rawRoles = document.getElementById('inp-target-role').value.split(',').map(r => r.trim()).filter(Boolean);
+
+      const payload = {
+        passport_id: activePassport?.passport_id || '',
+        personal: {
+          full_name: document.getElementById('inp-name').value,
+          title: document.getElementById('inp-title').value,
+          email: document.getElementById('inp-email').value,
+          location: document.getElementById('inp-location').value,
+          summary: document.getElementById('inp-summary').value,
+          linkedin: activePassport?.personal?.linkedin || '',
+          github: activePassport?.personal?.github || '',
+          website: activePassport?.personal?.website || ''
+        },
+        skills: skillsArr,
+        preferences: {
+          target_roles: rawRoles,
+          work_preference: document.getElementById('inp-work-pref').value || 'Flexible'
+        },
+        experience: activePassport?.experience || [],
+        education: activePassport?.education || [],
+        projects: activePassport?.projects || [],
+        certifications: activePassport?.certifications || [],
+        achievements: activePassport?.achievements || [],
+        assessments: activePassport?.assessments || []
+      };
+
+      try {
+        const res = await fetch('/api/passport', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        if (res.ok) {
+          const data = await res.json();
+          showToast('✅ Career Passport successfully updated!', 'success');
+          closeEditModal();
+          loadPassport();
+        } else {
+          showToast('Failed to save Career Passport', 'error');
+        }
+      } catch (err) {
+        showToast('Error connecting to server', 'error');
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', loadPassport);
+  </script>
+</body>
+</html>

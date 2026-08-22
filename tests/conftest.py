@@ -66,20 +66,14 @@ MOCK_BLUEPRINT_RESPONSE = {
 @pytest.fixture
 def mock_gemini():
     """Mock the Gemini API client to return a predictable blueprint."""
-    mock_response = MagicMock()
-    mock_response.text = json.dumps(MOCK_BLUEPRINT_RESPONSE)
-
-    with patch("main.client.models.generate_content", return_value=mock_response) as mock:
+    with patch("main._generate_ai_content", return_value=json.dumps(MOCK_BLUEPRINT_RESPONSE)) as mock:
         yield mock
 
 
 @pytest.fixture
 def mock_gemini_invalid():
     """Mock the Gemini API returning invalid JSON."""
-    mock_response = MagicMock()
-    mock_response.text = "This is not JSON at all!"
-
-    with patch("main.client.models.generate_content", return_value=mock_response) as mock:
+    with patch("main._generate_ai_content", return_value="This is not JSON at all!") as mock:
         yield mock
 
 
@@ -87,7 +81,7 @@ def mock_gemini_invalid():
 def mock_gemini_error():
     """Mock the Gemini API raising an exception."""
     with patch(
-        "main.client.models.generate_content",
+        "main._generate_ai_content",
         side_effect=Exception("API quota exceeded")
     ) as mock:
         yield mock
